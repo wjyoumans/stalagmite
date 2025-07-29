@@ -3,6 +3,7 @@ name = "stalagmite"
 version = "0.1.0"
 edition = "2024"
 authors = ["William Youmans <youmans.wj@gmail.com>"]
+description = "WIP extension of Malachite"
 readme = "../README.md"
 homepage = "https://github.com/wjyoumans/stalagmite"
 repository = "https://github.com/wjyoumans/stalagmite"
