@@ -11,4 +11,5 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 malachite = "0.6.1"
-
+stalagmite-base = { path = "../stalagmite-base" }
+stalagmite-poly = { path = "../stalagmite-poly" }
