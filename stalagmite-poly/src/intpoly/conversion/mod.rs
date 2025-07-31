@@ -25,8 +25,7 @@ where
 {
     fn from(coeffs: Vec<T>) -> Self {
         let coeffs: Vec<Integer> = coeffs.into_iter().map(|x| x.into()).collect();
-        let length = coeffs.len();
-        IntPoly::from_raw(coeffs, length)
+        IntPoly::from_raw(coeffs)
     }
 }
 
@@ -37,8 +36,7 @@ where
 {
     fn from(coeffs: &'a [T]) -> IntPoly {
         let coeffs: Vec<Integer> = coeffs.iter().map(|x| x.into()).collect();
-        let length = coeffs.len();
-        IntPoly::from_raw(coeffs, length)
+        IntPoly::from_raw(coeffs)
     }
 }
 
@@ -49,7 +47,7 @@ where
 {
     fn from(coeffs: [T; CAP]) -> IntPoly {
         let coeffs: Vec<Integer> = coeffs.into_iter().map(|x| x.into()).collect();
-        let mut p = IntPoly { coeffs, length: CAP };
+        let mut p = IntPoly { coeffs };
         p.normalize();
         p
     }
@@ -62,7 +60,7 @@ where
 {
     fn from(coeffs: &'a [T; CAP]) -> IntPoly {
         let coeffs: Vec<Integer> = coeffs.iter().map(|&x| x.into()).collect();
-        let mut p = IntPoly { coeffs, length: CAP };
+        let mut p = IntPoly { coeffs };
         p.normalize();
         p
     }

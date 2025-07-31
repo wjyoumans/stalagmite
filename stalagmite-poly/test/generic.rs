@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use stalagmite_poly::generic::{GenericPolyRing, GenericPoly, PolyCtx};
+use stalagmite_poly2::generic::{GenericPolyRing, GenericPoly, PolyCtx};
 use stalagmite_base::integer::{IntegerRing, Integer};
-use stalagmite_base::traits::{Parent, Element, Ring};
+use stalagmite_base::traits::Element;
 
 #[cfg(test)]
 mod tests {
@@ -53,7 +53,7 @@ mod tests {
         let int_ring = IntegerRing;
         let coeffs = vec![Integer::from(0), Integer::from(1)];
         let poly = GenericPoly::new(int_ring, coeffs);
-        let parent = poly.parent();
+        let _parent = poly.parent();
         // Test that parent() returns a valid parent
         assert!(true);
     }

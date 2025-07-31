@@ -22,19 +22,16 @@ pub mod conversion;
 use malachite::Integer;
 
 pub use arithmetic::*;
-pub use comparison::*;
-pub use conversion::*;
 
 #[derive(Debug, Clone)]
 pub struct IntPoly {
     pub coeffs: Vec<Integer>,
-    pub length: usize, // logical length (degree+1, or 0 for zero poly)
 }
 
 impl Default for IntPoly {
     #[inline]
     fn default() -> Self {
-        IntPoly::from_raw(vec![], 0)
+        IntPoly::from_raw(vec![])
     }
 }
 
@@ -49,29 +46,32 @@ impl IntPoly {
         while new_len > 0 && self.coeffs[new_len - 1] == 0 {
             new_len -= 1;
         }
-        self.length = new_len;
+        self.coeffs.truncate(new_len);
     }
-    pub fn from_raw(coeffs: Vec<Integer>, length: usize) -> Self {
-            let mut p = IntPoly { coeffs, length };
+    pub fn from_raw(coeffs: Vec<Integer>) -> Self {
+            let mut p = IntPoly { coeffs };
             p.normalize();
             p
     }
     pub fn with_capacity(capacity: usize) -> Self {
-        IntPoly::from_raw(Vec::with_capacity(capacity), 0)
+        IntPoly::from_raw(Vec::with_capacity(capacity))
     }
     #[inline]
     pub fn zero() -> Self {
         IntPoly::default()
     }
+    pub fn length(&self) -> usize {
+        self.coeffs.len()
+    }
     #[inline]
     pub fn is_zero(&self) -> bool {
-        self.length == 0
+        self.length() == 0
     }
     pub fn is_one(&self) -> bool {
-        self.length == 1 && self.coeffs[0] == Integer::from(1)
+        self.length() == 1 && self.coeffs[0] == Integer::from(1)
     }
     pub fn is_gen(&self) -> bool {
-        self.length == 2 && self.coeffs[0] == 0 && self.coeffs[1] == Integer::from(1)
+        self.length() == 2 && self.coeffs[0] == 0 && self.coeffs[1] == Integer::from(1)
     }
 
 }

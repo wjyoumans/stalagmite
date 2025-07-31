@@ -28,7 +28,7 @@ use std::mem::swap;
 impl Add for IntPoly {
     type Output = IntPoly;
     fn add(mut self, mut rhs: IntPoly) -> IntPoly {
-        if self.coeffs.capacity() >= rhs.coeffs.capacity() {
+        if self.length() >= rhs.length() {
             self += rhs;
             self
         } else {
@@ -66,14 +66,14 @@ impl Add<&IntPoly> for &IntPoly {
             return rhs.clone();
         }
 
-        let n = self.length.max(rhs.length);
+        let n = self.length().max(rhs.length());
         let mut result = Vec::with_capacity(n);
         for i in 0..n {
-            let a = if i < self.length { &self.coeffs[i] } else { &Integer::from(0) };
-            let b = if i < rhs.length { &rhs.coeffs[i] } else { &Integer::from(0) };
+            let a = if i < self.length() { &self.coeffs[i] } else { &Integer::from(0) };
+            let b = if i < rhs.length() { &rhs.coeffs[i] } else { &Integer::from(0) };
             result.push(a + b);
         }
-        IntPoly::from_raw(result, n)
+        IntPoly::from_raw(result)
     }
 }
 
@@ -85,15 +85,15 @@ impl AddAssign<IntPoly> for IntPoly {
         } else if self.is_zero() {
             *self = rhs;
         } else {
-            if self.length < rhs.length {
+            if self.length() < rhs.length() {
                 swap(self, &mut rhs);
             }
-
-            for i in 0..rhs.length {
+        
+            for i in 0..rhs.length() {
                 self.coeffs[i] += &rhs.coeffs[i];
             }
-            self.normalize();
         }
+        self.normalize();
     }
 }
 
@@ -103,25 +103,18 @@ impl AddAssign<&IntPoly> for IntPoly {
             return;
         } else if self.is_zero() {
             *self = rhs.clone();
-        } else if self.length < rhs.length {
+        } else if self.length() < rhs.length() {
             // add the common coefficients
-            for i in 0..self.length {
+            for i in 0..self.length() {
                 self.coeffs[i] += &rhs.coeffs[i];
             }
 
-            // copy the coefficients from rhs for the 
-            // entries where self is initialized
-            let n = self.coeffs.len().min(rhs.length);
-            for i in self.length..n {
-                self.coeffs[i] = rhs.coeffs[i].clone();
-            }
-
             // push the remaining coefficients from rhs
-            for i in n..rhs.length {
+            for i in self.length()..rhs.length() {
                 self.coeffs.push(rhs.coeffs[i].clone());
             }
         } else {
-            for i in 0..rhs.length {
+            for i in 0..rhs.length() {
                 self.coeffs[i] += &rhs.coeffs[i];
             }
         }

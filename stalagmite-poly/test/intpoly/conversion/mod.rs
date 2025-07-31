@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use stalagmite_poly::intpoly::IntPoly;
+use stalagmite_poly2::intpoly::IntPoly;
 use malachite::Integer;
 
 #[cfg(test)]
@@ -27,7 +27,7 @@ mod tests {
     fn test_from_vec_i32() {
         let coeffs = vec![1, 2, 3];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -37,7 +37,7 @@ mod tests {
     fn test_from_vec_i64() {
         let coeffs = vec![1i64, 2i64, 3i64];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -47,7 +47,7 @@ mod tests {
     fn test_from_vec_integer() {
         let coeffs = vec![Integer::from(1), Integer::from(2), Integer::from(3)];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -57,14 +57,14 @@ mod tests {
     fn test_from_vec_with_trailing_zeros() {
         let coeffs = vec![1, 2, 0, 0];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 2); // Should normalize
+        assert_eq!(poly.length(), 2); // Should normalize
     }
 
     #[test]
     fn test_from_empty_vec() {
         let coeffs: Vec<i32> = vec![];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 0);
+        assert_eq!(poly.length(), 0);
         assert!(poly.is_zero());
     }
 
@@ -73,7 +73,7 @@ mod tests {
     fn test_from_slice_integer() {
         let coeffs = vec![Integer::from(1), Integer::from(2), Integer::from(3)];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -83,7 +83,7 @@ mod tests {
     fn test_from_slice_integer_vec() {
         let coeffs = vec![Integer::from(1i64), Integer::from(2i64), Integer::from(3i64)];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -93,14 +93,14 @@ mod tests {
     fn test_from_slice_with_trailing_zeros() {
         let coeffs = vec![Integer::from(1), Integer::from(2), Integer::from(0), Integer::from(0)];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 2); // Should normalize
+        assert_eq!(poly.length(), 2); // Should normalize
     }
 
     #[test]
     fn test_from_empty_slice() {
         let coeffs: Vec<Integer> = vec![];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 0);
+        assert_eq!(poly.length(), 0);
         assert!(poly.is_zero());
     }
 
@@ -109,7 +109,7 @@ mod tests {
     fn test_from_array_i32() {
         let coeffs = [1, 2, 3];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -119,7 +119,7 @@ mod tests {
     fn test_from_array_i64() {
         let coeffs = [1i64, 2i64, 3i64];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -129,14 +129,14 @@ mod tests {
     fn test_from_array_with_trailing_zeros() {
         let coeffs = [1, 2, 0, 0];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 2); // Should normalize
+        assert_eq!(poly.length(), 2); // Should normalize
     }
 
     #[test]
     fn test_from_array_single_element() {
         let coeffs = [42];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 1);
+        assert_eq!(poly.length(), 1);
         assert_eq!(poly.coeffs[0], Integer::from(42));
     }
 
@@ -144,7 +144,7 @@ mod tests {
     fn test_from_array_all_zeros() {
         let coeffs = [0, 0, 0];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 0); // Should normalize to zero
+        assert_eq!(poly.length(), 0); // Should normalize to zero
         assert!(poly.is_zero());
     }
 
@@ -153,7 +153,7 @@ mod tests {
     fn test_from_array_ref_i32() {
         let coeffs = &[1, 2, 3];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -163,7 +163,7 @@ mod tests {
     fn test_from_array_ref_i64() {
         let coeffs = &[1i64, 2i64, 3i64];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs[0], Integer::from(1));
         assert_eq!(poly.coeffs[1], Integer::from(2));
         assert_eq!(poly.coeffs[2], Integer::from(3));
@@ -173,14 +173,14 @@ mod tests {
     fn test_from_array_ref_with_trailing_zeros() {
         let coeffs = &[1, 2, 0, 0];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 2); // Should normalize
+        assert_eq!(poly.length(), 2); // Should normalize
     }
 
     #[test]
     fn test_from_array_ref_single_element() {
         let coeffs = &[42];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 1);
+        assert_eq!(poly.length(), 1);
         assert_eq!(poly.coeffs[0], Integer::from(42));
     }
 
@@ -188,7 +188,7 @@ mod tests {
     fn test_from_array_ref_all_zeros() {
         let coeffs = &[0, 0, 0];
         let poly = IntPoly::from(coeffs);
-        assert_eq!(poly.length, 0); // Should normalize to zero
+        assert_eq!(poly.length(), 0); // Should normalize to zero
         assert!(poly.is_zero());
     }
 

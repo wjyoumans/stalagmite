@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use stalagmite_poly::generic::GenericPolyRing;
+use stalagmite_poly2::generic::GenericPolyRing;
 use stalagmite_base::integer::IntegerRing;
 
 #[cfg(test)]
@@ -25,7 +25,7 @@ mod tests {
     #[test]
     fn test_poly_ring_creation() {
         let int_ring = IntegerRing;
-        let generic_ring = GenericPolyRing::new(int_ring, "x");
+        let _generic_ring = GenericPolyRing::new(int_ring, "x");
         
         // Note: The PolyRing::new function currently doesn't return anything
         // This test verifies compilation but needs implementation to be more meaningful

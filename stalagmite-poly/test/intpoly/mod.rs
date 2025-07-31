@@ -19,7 +19,7 @@ pub mod arithmetic;
 pub mod comparison;
 pub mod conversion;
 
-use stalagmite_poly::intpoly::IntPoly;
+use stalagmite_poly2::intpoly::IntPoly;
 use malachite::Integer;
 
 #[cfg(test)]
@@ -29,7 +29,7 @@ mod tests {
     #[test]
     fn test_default() {
         let poly = IntPoly::default();
-        assert_eq!(poly.length, 0);
+        assert_eq!(poly.length(), 0);
         assert!(poly.coeffs.is_empty());
         assert!(poly.is_zero());
     }
@@ -38,43 +38,41 @@ mod tests {
     fn test_new() {
         let coeffs = vec![1, 2, 3];
         let poly = IntPoly::new(coeffs);
-        assert_eq!(poly.length, 3);
+        assert_eq!(poly.length(), 3);
         assert_eq!(poly.coeffs.len(), 3);
     }
 
     #[test]
     fn test_from_raw() {
         let coeffs = vec![Integer::from(1), Integer::from(2), Integer::from(0)];
-        let poly = IntPoly::from_raw(coeffs, 3);
+        let poly = IntPoly::from_raw(coeffs);
         // Should normalize, removing trailing zero
-        assert_eq!(poly.length, 2);
+        assert_eq!(poly.length(), 2);
     }
 
     #[test]
     fn test_normalize() {
         let mut poly = IntPoly {
             coeffs: vec![Integer::from(1), Integer::from(2), Integer::from(0), Integer::from(0)],
-            length: 4,
         };
         poly.normalize();
-        assert_eq!(poly.length, 2);
+        assert_eq!(poly.length(), 2);
     }
 
     #[test]
     fn test_normalize_all_zeros() {
         let mut poly = IntPoly {
             coeffs: vec![Integer::from(0), Integer::from(0), Integer::from(0)],
-            length: 3,
         };
         poly.normalize();
-        assert_eq!(poly.length, 0);
+        assert_eq!(poly.length(), 0);
         assert!(poly.is_zero());
     }
 
     #[test]
     fn test_with_capacity() {
         let poly = IntPoly::with_capacity(10);
-        assert_eq!(poly.length, 0);
+        assert_eq!(poly.length(), 0);
         assert!(poly.coeffs.capacity() >= 10);
         assert!(poly.is_zero());
     }
@@ -82,7 +80,7 @@ mod tests {
     #[test]
     fn test_zero() {
         let poly = IntPoly::zero();
-        assert_eq!(poly.length, 0);
+        assert_eq!(poly.length(), 0);
         assert!(poly.coeffs.is_empty());
         assert!(poly.is_zero());
     }

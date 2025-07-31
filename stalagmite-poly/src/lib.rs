@@ -21,7 +21,6 @@ pub mod generic;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::intpoly::IntPoly;
 
     #[test]

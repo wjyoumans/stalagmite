@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use stalagmite_poly::intpoly::IntPoly;
+use stalagmite_poly2::intpoly::IntPoly;
 
 #[cfg(test)]
 mod tests {
@@ -85,7 +85,7 @@ mod tests {
         let b = IntPoly::from(vec![0, 0, -3]);
         let c = a + b;
         assert_eq!(c, IntPoly::from(vec![1, 2]));
-        assert_eq!(c.length, 2);
+        assert_eq!(c.length(), 2);
     }
 
     #[test]

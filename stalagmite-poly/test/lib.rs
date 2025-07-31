@@ -22,7 +22,7 @@ pub mod intpoly;
 // Integration tests that test interactions between modules
 #[cfg(test)]
 mod integration_tests {
-    use stalagmite_poly::intpoly::IntPoly;
+    use stalagmite_poly2::intpoly::IntPoly;
 
     #[test]
     fn test_polynomial_workflow() {
@@ -56,7 +56,7 @@ mod integration_tests {
         
         let result = p1 + p2;
         assert_eq!(result, IntPoly::from(vec![1, 2]));
-        assert_eq!(result.length, 2);
+        assert_eq!(result.length(), 2);
     }
 
     #[test] 

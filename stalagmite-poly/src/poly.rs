@@ -17,12 +17,8 @@
 
 use std::marker::PhantomData;
 use stalagmite_base::traits::{
-    Parent,
-    Element,
     Ring,
-    RingElement, 
     PolynomialRing,
-    Polynomial
 };
 
 // Public interface for polynomials
@@ -37,5 +33,5 @@ where
 }
 
 impl<R: Ring, T: PolynomialRing<R>> PolyRing<R, T> {
-    fn new(base_ring: R) {}
+    fn new(_base_ring: R) {}
 }

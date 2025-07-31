@@ -20,9 +20,9 @@ use std::cmp::PartialEq;
 
 impl PartialEq for IntPoly {
     fn eq(&self, other: &Self) -> bool {
-        if self.length != other.length {
+        if self.length() != other.length() {
             return false;
         }
-        self.coeffs[..self.length] == other.coeffs[..other.length]
+        self.coeffs == other.coeffs
     }
 }
