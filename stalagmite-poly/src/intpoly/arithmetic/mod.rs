@@ -16,3 +16,7 @@
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod add;
+pub mod neg;
+pub mod sub;
+pub mod mul;
+pub mod rem;

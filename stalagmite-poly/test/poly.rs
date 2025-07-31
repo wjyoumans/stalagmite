@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use stalagmite_poly2::generic::GenericPolyRing;
+use stalagmite_poly::generic::GenericPolyRing;
 use stalagmite_base::integer::IntegerRing;
 
 #[cfg(test)]

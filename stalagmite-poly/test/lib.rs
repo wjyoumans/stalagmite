@@ -22,7 +22,7 @@ pub mod intpoly;
 // Integration tests that test interactions between modules
 #[cfg(test)]
 mod integration_tests {
-    use stalagmite_poly2::intpoly::IntPoly;
+    use stalagmite_poly::intpoly::IntPoly;
 
     #[test]
     fn test_polynomial_workflow() {

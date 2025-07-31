@@ -19,7 +19,7 @@ pub mod arithmetic;
 pub mod comparison;
 pub mod conversion;
 
-use stalagmite_poly2::intpoly::IntPoly;
+use stalagmite_poly::intpoly::IntPoly;
 use malachite::Integer;
 
 #[cfg(test)]

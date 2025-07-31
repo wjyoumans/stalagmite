@@ -1,4 +1,4 @@
-use stalagmite_poly2::intpoly::IntPoly;
+use stalagmite_poly::intpoly::IntPoly;
 
 fn main() {
     let polys = vec![

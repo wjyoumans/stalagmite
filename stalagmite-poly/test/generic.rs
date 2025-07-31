@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use stalagmite_poly2::generic::{GenericPolyRing, GenericPoly, PolyCtx};
+use stalagmite_poly::generic::{GenericPolyRing, GenericPoly, PolyCtx};
 use stalagmite_base::integer::{IntegerRing, Integer};
 use stalagmite_base::traits::Element;
 

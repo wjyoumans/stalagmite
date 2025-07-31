@@ -15,7 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use stalagmite_poly2::intpoly::IntPoly;
+use stalagmite_poly::intpoly::IntPoly;
+use malachite::Integer;
 
 #[cfg(test)]
 mod tests {
