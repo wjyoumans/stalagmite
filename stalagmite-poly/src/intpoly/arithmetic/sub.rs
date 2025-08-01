@@ -16,12 +16,13 @@
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
 use malachite::Integer;
+use malachite::base::num::arithmetic::traits::NegAssign;
 use crate::intpoly::IntPoly;
 use std::ops::{
     Sub,
     SubAssign,
 };
-
+use std::mem::swap;
 
 /// Subtract two owned `IntPoly` polynomials.
 ///
@@ -51,8 +52,13 @@ use std::ops::{
 /// ```
 impl Sub for IntPoly {
     type Output = IntPoly;
-    fn sub(self, rhs: IntPoly) -> IntPoly {
-        self + (-rhs)
+    fn sub(mut self, rhs: IntPoly) -> IntPoly {
+        if self.length() >= rhs.length() {
+            self -= rhs;
+            self
+        } else {
+            self + (-rhs)
+        }
     }
 }
 
@@ -77,8 +83,9 @@ impl Sub for IntPoly {
 impl Sub<&IntPoly> for IntPoly {
     type Output = IntPoly;
     #[inline]
-    fn sub(self, rhs: &IntPoly) -> IntPoly {
-        self + (-rhs)
+    fn sub(mut self, rhs: &IntPoly) -> IntPoly {
+        self -= rhs;
+        self
     }
 }
 
@@ -158,10 +165,10 @@ impl Sub<&IntPoly> for &IntPoly {
 /// ```
 /// use stalagmite_poly::intpoly::IntPoly;
 ///
-/// let mut p1 = IntPoly::from(vec![5, 7, 9]);
+/// let mut p1 = IntPoly::from(vec![5, 7]);
 /// let p2 = IntPoly::from(vec![1, 2, 3]);
 /// p1 -= p2;
-/// assert_eq!(p1, IntPoly::from(vec![4, 5, 6]));
+/// assert_eq!(p1, IntPoly::from(vec![4, 5, -3]));
 ///
 /// // Subtracting zero doesn't change the polynomial
 /// let mut p = IntPoly::from(vec![1, 2]);
@@ -174,8 +181,25 @@ impl Sub<&IntPoly> for &IntPoly {
 /// assert_eq!(zero, IntPoly::from(vec![-3, -4]));
 /// ```
 impl SubAssign<IntPoly> for IntPoly {
-    fn sub_assign(&mut self, rhs: IntPoly) {
-        *self += -rhs;
+    fn sub_assign(&mut self, mut rhs: IntPoly) {
+        if rhs.is_zero() {
+            return;
+        } else if self.is_zero() {
+            *self = -rhs;
+        } else {
+            if self.length() < rhs.length() {
+                rhs.neg_assign();
+                swap(self, &mut rhs);
+                for i in 0..rhs.length() {
+                    self.coeffs[i] += &rhs.coeffs[i];
+                }
+            } else {
+                for i in 0..rhs.length() {
+                    self.coeffs[i] -= &rhs.coeffs[i];
+                }
+            }
+        }
+        self.normalize();
     }
 }
 
@@ -204,7 +228,27 @@ impl SubAssign<IntPoly> for IntPoly {
 /// ```
 impl SubAssign<&IntPoly> for IntPoly {
     fn sub_assign(&mut self, rhs: &IntPoly) {
-        *self += -rhs;
+        if rhs.is_zero() {
+            return;
+        } else if self.is_zero() {
+            *self = -rhs;
+        } else {
+            if self.length() < rhs.length() {
+                // subtract the common coefficients
+                for i in 0..self.length() {
+                    self.coeffs[i] -= &rhs.coeffs[i];
+                }
+                // push the remaining coefficients from rhs
+                for i in self.length()..rhs.length() {
+                    self.coeffs.push(-rhs.coeffs[i].clone());
+                }
+            } else {
+                for i in 0..rhs.length() {
+                    self.coeffs[i] -= &rhs.coeffs[i];
+                }
+            }
+        }
+        self.normalize();
     }
 }
 
@@ -229,8 +273,9 @@ impl SubAssign<&IntPoly> for IntPoly {
 impl Sub<Integer> for IntPoly {
     type Output = IntPoly;
     #[inline]
-    fn sub(self, rhs: Integer) -> IntPoly {
-        self + (-rhs)
+    fn sub(mut self, rhs: Integer) -> IntPoly {
+        self -= rhs;
+        self
     }
 }
 
@@ -250,8 +295,9 @@ impl Sub<Integer> for IntPoly {
 impl Sub<&Integer> for IntPoly {
     type Output = IntPoly;
     #[inline]
-    fn sub(self, rhs: &Integer) -> IntPoly {
-        self + (-rhs)
+    fn sub(mut self, rhs: &Integer) -> IntPoly {
+        self -= rhs;
+        self
     }
 }
 
@@ -271,7 +317,7 @@ impl Sub<IntPoly> for Integer {
     type Output = IntPoly;
     #[inline]
     fn sub(self, rhs: IntPoly) -> IntPoly {
-        self + (-rhs)
+        (-rhs) + self
     }
 }
 
@@ -292,7 +338,7 @@ impl Sub<IntPoly> for &Integer {
     type Output = IntPoly;
     #[inline]
     fn sub(self, rhs: IntPoly) -> IntPoly {
-        self + (-rhs)
+        (-rhs) + self
     }
 }
 
@@ -316,7 +362,7 @@ impl Sub<IntPoly> for &Integer {
 impl Sub<&IntPoly> for Integer {
     type Output = IntPoly;
     fn sub(self, rhs: &IntPoly) -> IntPoly {
-        self + (-rhs)
+        (-rhs) + self
     }
 }
 
@@ -336,7 +382,7 @@ impl Sub<&IntPoly> for Integer {
 impl Sub<&IntPoly> for &Integer {
     type Output = IntPoly;
     fn sub(self, rhs: &IntPoly) -> IntPoly {
-        self + (-rhs)
+        (-rhs) + self
     }
 }
 
@@ -355,7 +401,7 @@ impl Sub<&IntPoly> for &Integer {
 impl Sub<Integer> for &IntPoly {
     type Output = IntPoly;
     fn sub(self, rhs: Integer) -> IntPoly {
-        self + (-rhs)
+        (-rhs) + self
     }
 }
 
@@ -375,7 +421,7 @@ impl Sub<Integer> for &IntPoly {
 impl Sub<&Integer> for &IntPoly {
     type Output = IntPoly;
     fn sub(self, rhs: &Integer) -> IntPoly {
-        self + (-rhs)
+        (-rhs) + self
     }
 }
 

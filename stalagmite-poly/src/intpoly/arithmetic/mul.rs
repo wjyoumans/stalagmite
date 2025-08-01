@@ -22,34 +22,104 @@ use std::ops::{
     MulAssign,
 };
 
-/// Classical polynomial multiplication algorithm.
+// Import all multiplication algorithms
+use crate::intpoly::arithmetic::mul_classical;
+use crate::intpoly::arithmetic::mul_karatsuba;
+use crate::intpoly::arithmetic::mul_ks;
+use crate::intpoly::arithmetic::sqr;
+
+/// Get the maximum number of bits needed to represent any coefficient.
 /// 
-/// This is based on the flint `_fmpz_poly_mul_tiny1` algorithm.
-/// For polynomials A(x) = Σ a_i x^i and B(x) = Σ b_j x^j,
-/// computes C(x) = A(x) * B(x) = Σ c_k x^k where c_k = Σ a_i * b_{k-i}.
-fn classical_mul(poly1: &[Integer], poly2: &[Integer]) -> Vec<Integer> {
-    if poly1.is_empty() || poly2.is_empty() {
+/// This is used for algorithm selection - larger coefficients may benefit
+/// from different multiplication algorithms.
+fn max_coefficient_bits(poly: &[Integer]) -> usize {
+    poly.iter()
+        .map(|coeff| {
+            // Simple approximation: convert to string length * 3.32 (log base 2 of 10)
+            // This gives a rough estimate of bit size
+            let str_len = coeff.to_string().len();
+            if str_len <= 1 { 1 } else { (str_len as f64 * 3.32) as usize }
+        })
+        .max()
+        .unwrap_or(1)
+}
+
+/// Intelligent algorithm selection for polynomial multiplication.
+/// 
+/// This function implements algorithm selection logic similar to flint,
+/// choosing the most appropriate multiplication algorithm based on:
+/// - Polynomial lengths
+/// - Coefficient bit sizes
+/// - Efficiency characteristics of each algorithm
+/// 
+/// The selection follows this general strategy:
+/// - Very small polynomials: classical multiplication
+/// - Medium polynomials with large coefficients: Karatsuba  
+/// - Large polynomials with small coefficients: Kronecker substitution
+///
+/// Eventually Schönhage-Strassen and NTT, hopefully.
+/// 
+/// # Arguments
+/// 
+/// * `poly1` - First polynomial coefficients
+/// * `len1` - Length of first polynomial
+/// * `poly2` - Second polynomial coefficients
+/// * `len2` - Length of second polynomial
+/// 
+/// # Returns
+/// 
+/// Vector of coefficients for the product polynomial.
+fn auto_mul(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: usize) -> Vec<Integer> {
+    if len1 == 0 || len2 == 0 {
         return Vec::new();
     }
-
-    let result_len = poly1.len() + poly2.len() - 1;
-    let mut result = vec![Integer::from(0); result_len];
-
-    for (i, a) in poly1.iter().enumerate() {
-        if *a != 0 {
-            for (j, b) in poly2.iter().enumerate() {
-                result[i + j] += a * b;
-            }
-        }
+    
+    // Handle scalar multiplication
+    if len1 == 1 || len2 == 1 {
+        return mul_classical::classical_mul(poly1, len1, poly2, len2);
     }
-
-    result
+    
+    // Use squaring algorithm if polynomials are identical
+    if len1 == len2 && poly1 == poly2 {
+        return sqr::auto_sqr(poly1, len1);
+    }
+    
+    let min_len = len1.min(len2);
+    let max_len = len1.max(len2);
+    
+    // Get coefficient bit sizes for algorithm selection
+    let bits1 = max_coefficient_bits(&poly1[..len1]);
+    let bits2 = max_coefficient_bits(&poly2[..len2]);
+    let total_bits = bits1 + bits2;
+    
+    // Algorithm selection logic based on flint's approach
+    if max_len <= 6 && total_bits <= 5000 {
+        // Very small polynomials: classical is most efficient
+        mul_classical::classical_mul(poly1, len1, poly2, len2)
+    } else if max_len <= 8 && total_bits >= 1500 && total_bits <= 10000 {
+        // Medium size with large coefficients: Karatsuba
+        mul_karatsuba::karatsuba_mul(poly1, len1, poly2, len2)
+    // } else if max_len >= 8 && max_len <= 75 && total_bits >= 800 && total_bits <= 4000 {
+    //     // Medium-large with medium coefficients: Schönhage-Strassen region
+    } else if min_len < 16 && (bits1 > 1000 || bits2 > 1000) {
+        // One small polynomial with large coefficients: Karatsuba
+        mul_karatsuba::karatsuba_mul(poly1, len1, poly2, len2)
+    } else if total_bits <= 800 || max_len < 50 {
+        // Small total bit complexity or medium size: Kronecker substitution
+        mul_ks::ks_mul(poly1, len1, poly2, len2)
+    // } else if max_len >= 1000 {
+    //     // Very large polynomials: Schönhage-Strassen
+    } else {
+        // Default fallback: Karatsuba for medium cases
+        mul_karatsuba::karatsuba_mul(poly1, len1, poly2, len2)
+    }
 }
 
 /// Multiply two owned `IntPoly` polynomials.
 ///
-/// This operation multiplies two polynomials using the classical algorithm.
-/// For polynomials A(x) and B(x), computes A(x) * B(x).
+/// This operation automatically selects the most efficient multiplication
+/// algorithm based on polynomial characteristics. For polynomials A(x) and B(x),
+/// computes A(x) * B(x).
 ///
 /// # Examples
 ///
@@ -72,6 +142,13 @@ fn classical_mul(poly1: &[Integer], poly2: &[Integer]) -> Vec<Integer> {
 /// let zero = IntPoly::zero();
 /// let result = poly * zero;
 /// assert!(result.is_zero());
+/// 
+/// // Large polynomial multiplication automatically uses efficient algorithms
+/// let large1: Vec<i32> = (1..=50).collect();
+/// let large2: Vec<i32> = (51..=100).collect();
+/// let p1 = IntPoly::from(large1);
+/// let p2 = IntPoly::from(large2);
+/// let result = p1 * p2; // Automatically selects appropriate algorithm
 /// ```
 impl Mul for IntPoly {
     type Output = IntPoly;
@@ -80,7 +157,7 @@ impl Mul for IntPoly {
             return IntPoly::zero();
         }
 
-        let coeffs = classical_mul(&self.coeffs, &rhs.coeffs);
+        let coeffs = auto_mul(&self.coeffs, self.length(), &rhs.coeffs, rhs.length());
         IntPoly::from_raw(coeffs)
     }
 }
@@ -105,7 +182,7 @@ impl Mul<&IntPoly> for IntPoly {
             return IntPoly::zero();
         }
 
-        let coeffs = classical_mul(&self.coeffs, &rhs.coeffs);
+        let coeffs = auto_mul(&self.coeffs, self.length(), &rhs.coeffs, rhs.length());
         IntPoly::from_raw(coeffs)
     }
 }
@@ -130,7 +207,7 @@ impl Mul<IntPoly> for &IntPoly {
             return IntPoly::zero();
         }
 
-        let coeffs = classical_mul(&self.coeffs, &rhs.coeffs);
+        let coeffs = auto_mul(&self.coeffs, self.length(), &rhs.coeffs, rhs.length());
         IntPoly::from_raw(coeffs)
     }
 }
@@ -138,7 +215,8 @@ impl Mul<IntPoly> for &IntPoly {
 /// Multiply two `IntPoly` references.
 ///
 /// This is the most memory-efficient multiplication as it doesn't take ownership
-/// of either polynomial and creates a new result.
+/// of either polynomial and creates a new result. Automatically selects the
+/// most efficient algorithm.
 ///
 /// # Examples
 ///
@@ -167,7 +245,7 @@ impl Mul<&IntPoly> for &IntPoly {
             return IntPoly::zero();
         }
 
-        let coeffs = classical_mul(&self.coeffs, &rhs.coeffs);
+        let coeffs = auto_mul(&self.coeffs, self.length(), &rhs.coeffs, rhs.length());
         IntPoly::from_raw(coeffs)
     }
 }
@@ -199,7 +277,14 @@ impl Mul<&IntPoly> for &IntPoly {
 /// ```
 impl MulAssign<IntPoly> for IntPoly {
     fn mul_assign(&mut self, rhs: IntPoly) {
-        *self = std::mem::take(self) * rhs;
+        // Use automatic algorithm selection
+        if self.is_zero() || rhs.is_zero() {
+            *self = IntPoly::zero();
+            return;
+        }
+        
+        let coeffs = auto_mul(&self.coeffs, self.length(), &rhs.coeffs, rhs.length());
+        *self = IntPoly::from_raw(coeffs);
     }
 }
 
@@ -207,6 +292,7 @@ impl MulAssign<IntPoly> for IntPoly {
 ///
 /// This modifies the left-hand side polynomial in place by multiplying it
 /// with the right-hand side polynomial, without taking ownership of the RHS.
+/// Automatically selects the most efficient algorithm.
 ///
 /// # Examples
 ///
@@ -220,14 +306,22 @@ impl MulAssign<IntPoly> for IntPoly {
 /// // p2 is still available for use
 /// assert_eq!(p2, IntPoly::from(vec![3, 4]));
 ///
-/// // Self-multiplication (squaring)
+/// // Self-multiplication (squaring automatically detected)
 /// let mut p = IntPoly::from(vec![1, 1]);  // 1 + x
-/// p *= &p.clone();                        // (1 + x)²
+/// let p_clone = p.clone();
+/// p *= &p_clone;                          // Uses squaring algorithm
 /// assert_eq!(p, IntPoly::from(vec![1, 2, 1]));
 /// ```
 impl MulAssign<&IntPoly> for IntPoly {
     fn mul_assign(&mut self, rhs: &IntPoly) {
-        *self = std::mem::take(self) * rhs;
+        // Use automatic algorithm selection
+        if self.is_zero() || rhs.is_zero() {
+            *self = IntPoly::zero();
+            return;
+        }
+        
+        let coeffs = auto_mul(&self.coeffs, self.length(), &rhs.coeffs, rhs.length());
+        *self = IntPoly::from_raw(coeffs);
     }
 }
 

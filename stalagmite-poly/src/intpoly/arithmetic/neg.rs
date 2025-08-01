@@ -17,6 +17,7 @@
 
 use crate::intpoly::IntPoly;
 use std::ops::Neg;
+use malachite::base::num::arithmetic::traits::NegAssign;
 
 /// Negate an owned `IntPoly` by negating all coefficients.
 ///
@@ -78,5 +79,13 @@ impl Neg for &IntPoly {
         
         let coeffs = self.coeffs.iter().map(|c| -c).collect();
         IntPoly::from_raw(coeffs)
+    }
+}
+
+impl NegAssign for IntPoly {
+    fn neg_assign(&mut self) {
+        for coeff in &mut self.coeffs {
+            *coeff = -&*coeff;
+        }
     }
 }
