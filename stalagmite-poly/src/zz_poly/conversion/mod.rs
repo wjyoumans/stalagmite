@@ -16,51 +16,51 @@
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
 use malachite::Integer;
-use crate::intpoly::IntPoly;
+use crate::zz_poly::ZZPoly;
 
 // From vectors
-impl<T> From<Vec<T>> for IntPoly 
+impl<T> From<Vec<T>> for ZZPoly 
 where
     T: Into<Integer>
 {
     fn from(coeffs: Vec<T>) -> Self {
         let coeffs: Vec<Integer> = coeffs.into_iter().map(|x| x.into()).collect();
-        IntPoly::from_raw(coeffs)
+        ZZPoly::from_raw(coeffs)
     }
 }
 
 // From slices
-impl<'a, T> From<&'a [T]> for IntPoly 
+impl<'a, T> From<&'a [T]> for ZZPoly 
 where
     &'a T: Into<Integer>
 {
-    fn from(coeffs: &'a [T]) -> IntPoly {
+    fn from(coeffs: &'a [T]) -> ZZPoly {
         let coeffs: Vec<Integer> = coeffs.iter().map(|x| x.into()).collect();
-        IntPoly::from_raw(coeffs)
+        ZZPoly::from_raw(coeffs)
     }
 }
 
 // From arrays
-impl<T, const CAP: usize> From<[T; CAP]> for IntPoly
+impl<T, const CAP: usize> From<[T; CAP]> for ZZPoly
 where
     T: Into<Integer>
 {
-    fn from(coeffs: [T; CAP]) -> IntPoly {
+    fn from(coeffs: [T; CAP]) -> ZZPoly {
         let coeffs: Vec<Integer> = coeffs.into_iter().map(|x| x.into()).collect();
-        let mut p = IntPoly { coeffs };
+        let mut p = ZZPoly { coeffs };
         p.normalize();
         p
     }
 }
 
 // From slices of arrays, assuming copyable (i.e `&[1, 2, 3]`).
-impl<'a, T, const CAP: usize> From<&'a [T; CAP]> for IntPoly
+impl<'a, T, const CAP: usize> From<&'a [T; CAP]> for ZZPoly
 where
     T: Copy + Into<Integer>
 {
-    fn from(coeffs: &'a [T; CAP]) -> IntPoly {
+    fn from(coeffs: &'a [T; CAP]) -> ZZPoly {
         let coeffs: Vec<Integer> = coeffs.iter().map(|&x| x.into()).collect();
-        let mut p = IntPoly { coeffs };
+        let mut p = ZZPoly { coeffs };
         p.normalize();
         p
     }

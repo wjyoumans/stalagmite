@@ -26,8 +26,8 @@
 //! product when the truncation point is much smaller than the full product length.
 
 use malachite::Integer;
-use crate::intpoly::IntPoly;
-use crate::intpoly::arithmetic::mul_karatsuba::karatsuba_mul;
+use crate::zz_poly::ZZPoly;
+use crate::zz_poly::arithmetic::mul_karatsuba::karatsuba_mul;
 
 /// Threshold for using Karatsuba in truncated multiplication.
 const KARATSUBA_MULLOW_THRESHOLD: usize = 16;
@@ -54,7 +54,7 @@ const KARATSUBA_MULLOW_THRESHOLD: usize = 16;
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::mullow::classical_mullow;
+/// use stalagmite_poly::zz_poly::arithmetic::mullow::classical_mullow;
 /// use malachite::Integer;
 /// 
 /// let poly1 = vec![Integer::from(1), Integer::from(2), Integer::from(3)]; // 1 + 2x + 3x²
@@ -108,7 +108,7 @@ pub fn classical_mullow(poly1: &[Integer], len1: usize, poly2: &[Integer], len2:
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::mullow::karatsuba_mullow;
+/// use stalagmite_poly::zz_poly::arithmetic::mullow::karatsuba_mullow;
 /// use malachite::Integer;
 /// 
 /// let poly1: Vec<Integer> = (1..=20).map(Integer::from).collect();
@@ -116,7 +116,7 @@ pub fn classical_mullow(poly1: &[Integer], len1: usize, poly2: &[Integer], len2:
 /// let result = karatsuba_mullow(&poly1, 20, &poly2, 20, 10);
 /// 
 /// // Verify against classical truncated multiplication
-/// use stalagmite_poly::intpoly::arithmetic::mullow::classical_mullow;
+/// use stalagmite_poly::zz_poly::arithmetic::mullow::classical_mullow;
 /// let expected = classical_mullow(&poly1, 20, &poly2, 20, 10);
 /// assert_eq!(result, expected);
 /// ```
@@ -154,7 +154,7 @@ pub fn karatsuba_mullow(poly1: &[Integer], len1: usize, poly2: &[Integer], len2:
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::mullow::auto_mullow;
+/// use stalagmite_poly::zz_poly::arithmetic::mullow::auto_mullow;
 /// use malachite::Integer;
 /// 
 /// let poly1 = vec![Integer::from(1), Integer::from(2), Integer::from(3)];
@@ -176,7 +176,7 @@ pub fn auto_mullow(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: usiz
     }
 }
 
-/// Truncated multiplication for IntPoly.
+/// Truncated multiplication for ZZPoly.
 /// 
 /// Computes only the first `n` coefficients of the product of two polynomials.
 /// This is more efficient than full multiplication when `n` is much smaller
@@ -185,42 +185,42 @@ pub fn auto_mullow(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: usiz
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
-/// use stalagmite_poly::intpoly::arithmetic::mullow::mullow;
+/// use stalagmite_poly::zz_poly::ZZPoly;
+/// use stalagmite_poly::zz_poly::arithmetic::mullow::mullow;
 /// 
-/// let poly1 = IntPoly::from(vec![1, 2, 3, 4, 5]);
-/// let poly2 = IntPoly::from(vec![6, 7, 8, 9, 10]);
+/// let poly1 = ZZPoly::from(vec![1, 2, 3, 4, 5]);
+/// let poly2 = ZZPoly::from(vec![6, 7, 8, 9, 10]);
 /// let result = mullow(&poly1, &poly2, 3);
 /// 
 /// // Compare with full multiplication truncated
 /// let full_result = &poly1 * &poly2;
-/// let expected = IntPoly::from_raw(full_result.coeffs[0..3].to_vec());
+/// let expected = ZZPoly::from_raw(full_result.coeffs[0..3].to_vec());
 /// assert_eq!(result, expected);
 /// 
 /// // Truncated multiplication with zero polynomial
-/// let zero = IntPoly::zero();
+/// let zero = ZZPoly::zero();
 /// let result = mullow(&poly1, &zero, 5);
 /// assert!(result.is_zero());
 /// 
 /// // Truncation larger than result
-/// let small1 = IntPoly::from(vec![1, 2]);
-/// let small2 = IntPoly::from(vec![3, 4]);
+/// let small1 = ZZPoly::from(vec![1, 2]);
+/// let small2 = ZZPoly::from(vec![3, 4]);
 /// let result = mullow(&small1, &small2, 10);
 /// // Should be same as full multiplication, padded with zeros if needed
 /// let full = &small1 * &small2;
 /// assert_eq!(result.coeffs[0..full.length()], full.coeffs);
 /// ```
-pub fn mullow(poly1: &IntPoly, poly2: &IntPoly, n: usize) -> IntPoly {
+pub fn mullow(poly1: &ZZPoly, poly2: &ZZPoly, n: usize) -> ZZPoly {
     if n == 0 {
-        return IntPoly::zero();
+        return ZZPoly::zero();
     }
     
     if poly1.is_zero() || poly2.is_zero() {
-        return IntPoly::from_raw(vec![Integer::from(0); n]);
+        return ZZPoly::from_raw(vec![Integer::from(0); n]);
     }
     
     let coeffs = auto_mullow(&poly1.coeffs, poly1.length(), &poly2.coeffs, poly2.length(), n);
-    IntPoly::from_raw(coeffs)
+    ZZPoly::from_raw(coeffs)
 }
 
 /// Truncated squaring algorithm.
@@ -232,19 +232,19 @@ pub fn mullow(poly1: &IntPoly, poly2: &IntPoly, n: usize) -> IntPoly {
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
-/// use stalagmite_poly::intpoly::arithmetic::mullow::sqrlow;
+/// use stalagmite_poly::zz_poly::ZZPoly;
+/// use stalagmite_poly::zz_poly::arithmetic::mullow::sqrlow;
 /// 
-/// let poly = IntPoly::from(vec![1, 2, 3, 4]);
+/// let poly = ZZPoly::from(vec![1, 2, 3, 4]);
 /// let result = sqrlow(&poly, 4);
 /// 
 /// // Compare with full squaring truncated
-/// use stalagmite_poly::intpoly::arithmetic::sqr::sqr;
+/// use stalagmite_poly::zz_poly::arithmetic::sqr::sqr;
 /// let full_sqr = sqr(&poly);
-/// let expected = IntPoly::from_raw(full_sqr.coeffs[0..4].to_vec());
+/// let expected = ZZPoly::from_raw(full_sqr.coeffs[0..4].to_vec());
 /// assert_eq!(result, expected);
 /// ```
-pub fn sqrlow(poly: &IntPoly, n: usize) -> IntPoly {
+pub fn sqrlow(poly: &ZZPoly, n: usize) -> ZZPoly {
     // For squaring, we can use the same truncated multiplication
     mullow(poly, poly, n)
 }
@@ -268,7 +268,7 @@ mod tests {
         let poly2 = vec![Integer::from(4), Integer::from(5), Integer::from(6)];
         
         let truncated = classical_mullow(&poly1, 3, &poly2, 3, 3);
-        let full = crate::intpoly::arithmetic::mul_classical::classical_mul(&poly1, 3, &poly2, 3);
+        let full = crate::zz_poly::arithmetic::mul_classical::classical_mul(&poly1, 3, &poly2, 3);
         
         // First 3 coefficients should match
         assert_eq!(truncated, full[0..3]);
@@ -303,9 +303,9 @@ mod tests {
     }
     
     #[test]
-    fn test_mullow_intpoly() {
-        let poly1 = IntPoly::from(vec![1, 2, 3, 4, 5]);
-        let poly2 = IntPoly::from(vec![6, 7, 8, 9, 10]);
+    fn test_mullow_zz_poly() {
+        let poly1 = ZZPoly::from(vec![1, 2, 3, 4, 5]);
+        let poly2 = ZZPoly::from(vec![6, 7, 8, 9, 10]);
         let result = mullow(&poly1, &poly2, 4);
         
         // Verify against full multiplication truncated
@@ -315,20 +315,20 @@ mod tests {
     
     #[test]
     fn test_mullow_edge_cases() {
-        let poly = IntPoly::from(vec![1, 2, 3]);
+        let poly = ZZPoly::from(vec![1, 2, 3]);
         
         // Zero truncation
         let result = mullow(&poly, &poly, 0);
         assert!(result.is_zero());
         
         // Zero polynomial
-        let zero = IntPoly::zero();
+        let zero = ZZPoly::zero();
         let result = mullow(&poly, &zero, 5);
         assert_eq!(result.coeffs, vec![Integer::from(0); 5]);
         
         // Truncation larger than full result
-        let small1 = IntPoly::from(vec![1, 2]);
-        let small2 = IntPoly::from(vec![3]);
+        let small1 = ZZPoly::from(vec![1, 2]);
+        let small2 = ZZPoly::from(vec![3]);
         let result = mullow(&small1, &small2, 10);
         // Should match full multiplication in the meaningful positions
         let full = &small1 * &small2;
@@ -337,11 +337,11 @@ mod tests {
     
     #[test]
     fn test_sqrlow() {
-        let poly = IntPoly::from(vec![1, 2, 3]);
+        let poly = ZZPoly::from(vec![1, 2, 3]);
         let result = sqrlow(&poly, 3);
         
         // Verify against full squaring truncated
-        use crate::intpoly::arithmetic::sqr::sqr;
+        use crate::zz_poly::arithmetic::sqr::sqr;
         let full_sqr = sqr(&poly);
         assert_eq!(result.coeffs, full_sqr.coeffs[0..3]);
     }

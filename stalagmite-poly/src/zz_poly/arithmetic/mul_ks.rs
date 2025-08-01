@@ -29,8 +29,8 @@
 //! algorithms.
 
 use malachite::Integer;
-use crate::intpoly::IntPoly;
-use crate::intpoly::arithmetic::mul_classical::classical_mul;
+use crate::zz_poly::ZZPoly;
+use crate::zz_poly::arithmetic::mul_classical::classical_mul;
 
 /// Minimum length threshold for using Kronecker substitution.
 /// Below this threshold, classical multiplication is more efficient.
@@ -54,7 +54,7 @@ const KS_THRESHOLD: usize = 16;
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::mul_ks::evaluate_at_base;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_ks::evaluate_at_base;
 /// use malachite::Integer;
 /// 
 /// let poly = vec![Integer::from(1), Integer::from(2), Integer::from(3)]; // 1 + 2x + 3x²
@@ -93,7 +93,7 @@ pub fn evaluate_at_base(poly: &[Integer], len: usize, base: &Integer) -> Integer
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::mul_ks::extract_coefficients;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_ks::extract_coefficients;
 /// use malachite::Integer;
 /// 
 /// let value = Integer::from(321); // Represents 1 + 2x + 3x²
@@ -181,7 +181,7 @@ fn choose_base(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: usize) -
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::mul_ks::ks_mul;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_ks::ks_mul;
 /// use malachite::Integer;
 /// 
 /// let poly1 = vec![Integer::from(1), Integer::from(2)]; // 1 + 2x
@@ -215,51 +215,51 @@ pub fn ks_mul(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: usize) ->
     extract_coefficients(&product, &base, result_len)
 }
 
-/// Kronecker substitution multiplication for IntPoly.
+/// Kronecker substitution multiplication for ZZPoly.
 /// 
 /// This is a high-level interface to the Kronecker substitution algorithm
-/// that handles IntPoly types and their internal representation.
+/// that handles ZZPoly types and their internal representation.
 /// 
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
-/// use stalagmite_poly::intpoly::arithmetic::mul_ks::mul_ks;
+/// use stalagmite_poly::zz_poly::ZZPoly;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_ks::mul_ks;
 /// 
-/// let poly1 = IntPoly::from(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
-/// let poly2 = IntPoly::from(vec![16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+/// let poly1 = ZZPoly::from(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+/// let poly2 = ZZPoly::from(vec![16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
 /// let result = mul_ks(&poly1, &poly2);
 /// 
 /// // Verify against classical multiplication
-/// use stalagmite_poly::intpoly::arithmetic::mul_classical::mul_classical;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_classical::mul_classical;
 /// let expected = mul_classical(&poly1, &poly2);
 /// assert_eq!(result, expected);
 /// 
 /// // Multiplication with zero polynomial
-/// let zero = IntPoly::zero();
+/// let zero = ZZPoly::zero();
 /// let result = mul_ks(&poly1, &zero);
 /// assert!(result.is_zero());
 /// 
 /// // Small polynomials (should fall back to classical)
-/// let small1 = IntPoly::from(vec![1, 2, 3]);
-/// let small2 = IntPoly::from(vec![4, 5, 6]);
+/// let small1 = ZZPoly::from(vec![1, 2, 3]);
+/// let small2 = ZZPoly::from(vec![4, 5, 6]);
 /// let result = mul_ks(&small1, &small2);
 /// let expected = mul_classical(&small1, &small2);
 /// assert_eq!(result, expected);
 /// ```
-pub fn mul_ks(poly1: &IntPoly, poly2: &IntPoly) -> IntPoly {
+pub fn mul_ks(poly1: &ZZPoly, poly2: &ZZPoly) -> ZZPoly {
     if poly1.is_zero() || poly2.is_zero() {
-        return IntPoly::zero();
+        return ZZPoly::zero();
     }
     
     let coeffs = ks_mul(&poly1.coeffs, poly1.length(), &poly2.coeffs, poly2.length());
-    IntPoly::from_raw(coeffs)
+    ZZPoly::from_raw(coeffs)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::intpoly::arithmetic::mul_classical::classical_mul;
+    use crate::zz_poly::arithmetic::mul_classical::classical_mul;
     
     #[test]
     fn test_evaluate_at_base() {
@@ -331,18 +331,18 @@ mod tests {
     }
     
     #[test]
-    fn test_mul_ks_intpoly() {
+    fn test_mul_ks_zz_poly() {
         // Use large enough polynomials to trigger KS
         let poly1: Vec<i32> = (1..=18).collect();
         let poly2: Vec<i32> = (19..=36).collect();
         
-        let ipoly1 = IntPoly::from(poly1);
-        let ipoly2 = IntPoly::from(poly2);
+        let ipoly1 = ZZPoly::from(poly1);
+        let ipoly2 = ZZPoly::from(poly2);
         
         let ks_result = mul_ks(&ipoly1, &ipoly2);
         
         // Verify against classical multiplication
-        use crate::intpoly::arithmetic::mul_classical::mul_classical;
+        use crate::zz_poly::arithmetic::mul_classical::mul_classical;
         let classical_result = mul_classical(&ipoly1, &ipoly2);
         assert_eq!(ks_result, classical_result);
     }

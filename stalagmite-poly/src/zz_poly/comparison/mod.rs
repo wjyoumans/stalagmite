@@ -15,28 +15,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::intpoly::IntPoly;
-use std::cmp::PartialEq;
-use malachite::Integer;
 
-impl PartialEq for IntPoly {
-    fn eq(&self, other: &Self) -> bool {
-        if self.length() != other.length() {
-            return false;
-        }
-        self.coeffs == other.coeffs
-    }
-}
+// derive PartialEq and Eq instead
 
-impl PartialEq<Integer> for IntPoly {
-    fn eq(&self, other: &Integer) -> bool {
-        self.length() == 0 && *other == 0 ||
-            self.length() == 1 && self.coeffs[0] == *other
-    }
-}
+// use crate::zz_poly::ZZPoly;
+// use std::cmp::PartialEq;
+// use malachite::Integer;
 
-impl PartialEq<IntPoly> for Integer {
-    fn eq(&self, other: &IntPoly) -> bool {
-        other == self
-    }
-}
+// impl PartialEq for ZZPoly {
+//     fn eq(&self, other: &Self) -> bool {
+//         if self.length() != other.length() {
+//             return false;
+//         }
+//         self.coeffs == other.coeffs
+//     }
+// }
+
+// impl PartialEq<Integer> for ZZPoly {
+//     fn eq(&self, other: &Integer) -> bool {
+//         self.length() == 0 && *other == 0 ||
+//             self.length() == 1 && self.coeffs[0] == *other
+//     }
+// }
+
+// impl PartialEq<ZZPoly> for Integer {
+//     fn eq(&self, other: &ZZPoly) -> bool {
+//         other == self
+//     }
+// }

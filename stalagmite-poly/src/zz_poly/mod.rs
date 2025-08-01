@@ -24,20 +24,26 @@ use malachite::Integer;
 
 pub use arithmetic::*;
 
-#[derive(Debug, Clone)]
-pub struct IntPoly {
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct IntegerPolynomialRing;
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct IntegerPolynomial {
     coeffs: Vec<Integer>,
 }
 
-impl Default for IntPoly {
+pub type ZZPolyRing = IntegerPolynomialRing;
+pub type ZZPoly = IntegerPolynomial;
+
+impl Default for ZZPoly {
     #[inline]
     fn default() -> Self {
-        IntPoly::from_raw(vec![])
+        ZZPoly::from_raw(vec![])
     }
 }
 
 // Impl Deref but NOT DerefMut.
-impl std::ops::Deref for IntPoly {
+impl std::ops::Deref for ZZPoly {
     type Target = Vec<Integer>;
 
     fn deref(&self) -> &Self::Target {
@@ -45,7 +51,7 @@ impl std::ops::Deref for IntPoly {
     }
 }
 
-impl fmt::Display for IntPoly {
+impl fmt::Display for ZZPoly {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 
         let len = self.length();
@@ -93,9 +99,9 @@ impl fmt::Display for IntPoly {
     }
 }
 
-impl IntPoly {
+impl ZZPoly {
     #[inline]
-    pub fn new<T: Into<IntPoly>>(input: T) -> Self {
+    pub fn new<T: Into<ZZPoly>>(input: T) -> Self {
         input.into()
     }
     
@@ -108,29 +114,29 @@ impl IntPoly {
     }
     
     pub fn from_raw(coeffs: Vec<Integer>) -> Self {
-            let mut p = IntPoly { coeffs };
+            let mut p = ZZPoly { coeffs };
             p.normalize();
             p
     }
     
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
-        IntPoly::from_raw(Vec::with_capacity(capacity))
+        ZZPoly::from_raw(Vec::with_capacity(capacity))
     }
     
     #[inline]
     pub fn zero() -> Self {
-        IntPoly::default()
+        ZZPoly::default()
     }
 
     #[inline]
     pub fn one() -> Self {
-        IntPoly::from(vec![1])
+        ZZPoly::from(vec![1])
     }
 
     #[inline]
     pub fn r#gen() -> Self {
-        IntPoly::from(vec![0, 1])
+        ZZPoly::from(vec![0, 1])
     }
     
     #[inline]

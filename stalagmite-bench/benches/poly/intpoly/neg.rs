@@ -19,7 +19,7 @@ extern crate criterion;
 extern crate stalagmite_poly;
 
 use criterion::*;
-use stalagmite_poly::intpoly::IntPoly;
+use stalagmite_poly::zz_poly::ZZPoly;
 use malachite::base::num::arithmetic::traits::NegAssign;
 use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
@@ -42,7 +42,7 @@ fn generate_mixed_sign_coeffs(size: usize, max_coeff: i32) -> Vec<i32> {
 // ========== BASIC NEGATION BENCHMARKS ==========
 
 fn bench_neg_owned_vs_ref(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Neg - owned vs reference");
+    let mut group = c.benchmark_group("ZZPoly Neg - owned vs reference");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -51,7 +51,7 @@ fn bench_neg_owned_vs_ref(c: &mut Criterion) {
     
     for &size in poly_sizes.iter() {
         let coeffs = generate_random_coeffs(size, max_coeff);
-        let poly = IntPoly::from(coeffs);
+        let poly = ZZPoly::from(coeffs);
         
         group.bench_function(BenchmarkId::new("neg_owned", size), |b| {
             b.iter_with_setup(
@@ -68,7 +68,7 @@ fn bench_neg_owned_vs_ref(c: &mut Criterion) {
 }
 
 fn bench_neg_vs_neg_assign(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Neg - negation vs neg_assign");
+    let mut group = c.benchmark_group("ZZPoly Neg - negation vs neg_assign");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -77,7 +77,7 @@ fn bench_neg_vs_neg_assign(c: &mut Criterion) {
     
     for &size in poly_sizes.iter() {
         let coeffs = generate_random_coeffs(size, max_coeff);
-        let poly = IntPoly::from(coeffs);
+        let poly = ZZPoly::from(coeffs);
         
         group.bench_function(BenchmarkId::new("neg_owned", size), |b| {
             b.iter_with_setup(
@@ -106,7 +106,7 @@ fn bench_neg_vs_neg_assign(c: &mut Criterion) {
 // Large coefficient benchmarks removed for simplicity
 
 fn bench_neg_mixed_signs(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Neg - mixed sign coefficients");
+    let mut group = c.benchmark_group("ZZPoly Neg - mixed sign coefficients");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -117,8 +117,8 @@ fn bench_neg_mixed_signs(c: &mut Criterion) {
         let positive_coeffs = generate_random_coeffs(size, max_coeff);
         let mixed_coeffs = generate_mixed_sign_coeffs(size, max_coeff);
         
-        let positive_poly = IntPoly::from(positive_coeffs);
-        let mixed_poly = IntPoly::from(mixed_coeffs);
+        let positive_poly = ZZPoly::from(positive_coeffs);
+        let mixed_poly = ZZPoly::from(mixed_coeffs);
         
         group.bench_function(BenchmarkId::new("neg_positive", size), |b| {
             b.iter(|| black_box(-&positive_poly))
@@ -132,15 +132,15 @@ fn bench_neg_mixed_signs(c: &mut Criterion) {
 }
 
 fn bench_neg_special_cases(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Neg - special cases");
+    let mut group = c.benchmark_group("ZZPoly Neg - special cases");
     
     let sizes = [1usize, 10, 100, 1000];
     let max_coeff = 1000;
-    let zero = IntPoly::zero();
+    let zero = ZZPoly::zero();
     
     for &size in sizes.iter() {
         let coeffs = generate_random_coeffs(size, max_coeff);
-        let poly = IntPoly::from(coeffs);
+        let poly = ZZPoly::from(coeffs);
         
         // Zero polynomial negation
         group.bench_function(BenchmarkId::new("neg_zero", size), |b| {
@@ -162,8 +162,8 @@ fn bench_neg_special_cases(c: &mut Criterion) {
         sparse_coeffs[i] = (i as i32 % max_coeff) + 1;
     }
     
-    let dense_poly = IntPoly::from(dense_coeffs);
-    let sparse_poly = IntPoly::from(sparse_coeffs);
+    let dense_poly = ZZPoly::from(dense_coeffs);
+    let sparse_poly = ZZPoly::from(sparse_coeffs);
     
     group.bench_function("neg_dense_100", |b| {
         b.iter(|| black_box(-&dense_poly))
@@ -177,7 +177,7 @@ fn bench_neg_special_cases(c: &mut Criterion) {
 }
 
 fn bench_double_negation(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Neg - double negation");
+    let mut group = c.benchmark_group("ZZPoly Neg - double negation");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -186,7 +186,7 @@ fn bench_double_negation(c: &mut Criterion) {
     
     for &size in poly_sizes.iter() {
         let coeffs = generate_random_coeffs(size, max_coeff);
-        let poly = IntPoly::from(coeffs);
+        let poly = ZZPoly::from(coeffs);
         
         group.bench_function(BenchmarkId::new("double_neg_ref", size), |b| {
             b.iter(|| black_box(-(-&poly)))
@@ -216,7 +216,7 @@ fn bench_double_negation(c: &mut Criterion) {
 // ========== MEMORY ALLOCATION BENCHMARKS ==========
 
 fn bench_neg_memory_patterns(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Neg - memory allocation patterns");
+    let mut group = c.benchmark_group("ZZPoly Neg - memory allocation patterns");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -225,7 +225,7 @@ fn bench_neg_memory_patterns(c: &mut Criterion) {
     
     for &size in poly_sizes.iter() {
         let coeffs = generate_random_coeffs(size, max_coeff);
-        let poly = IntPoly::from(coeffs);
+        let poly = ZZPoly::from(coeffs);
         
         // Single negation (creates new polynomial)
         group.bench_function(BenchmarkId::new("single_neg_ref", size), |b| {

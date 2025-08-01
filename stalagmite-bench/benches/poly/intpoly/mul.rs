@@ -19,7 +19,7 @@ extern crate criterion;
 extern crate stalagmite_poly;
 
 use criterion::*;
-use stalagmite_poly::intpoly::IntPoly;
+use stalagmite_poly::zz_poly::ZZPoly;
 use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
 
@@ -34,7 +34,7 @@ fn generate_random_coeffs(size: usize, max_coeff: i64) -> Vec<i64> {
 // ========== BASIC MULTIPLICATION BENCHMARKS ==========
 
 fn bench_mul_same_size(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Mul - same size (auto algorithm)");
+    let mut group = c.benchmark_group("ZZPoly Mul - same size (auto algorithm)");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -45,8 +45,8 @@ fn bench_mul_same_size(c: &mut Criterion) {
         let coeffs_a = generate_random_coeffs(size, max_coeff);
         let coeffs_b = generate_random_coeffs(size, max_coeff);
         
-        let poly_a = IntPoly::from(coeffs_a);
-        let poly_b = IntPoly::from(coeffs_b);
+        let poly_a = ZZPoly::from(coeffs_a);
+        let poly_b = ZZPoly::from(coeffs_b);
         
         group.bench_function(BenchmarkId::new("owned_owned", size), |b| {
             b.iter_with_setup(
@@ -77,7 +77,7 @@ fn bench_mul_same_size(c: &mut Criterion) {
 }
 
 fn bench_mul_different_sizes(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Mul - different sizes");
+    let mut group = c.benchmark_group("ZZPoly Mul - different sizes");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -96,8 +96,8 @@ fn bench_mul_different_sizes(c: &mut Criterion) {
         let coeffs_a = generate_random_coeffs(size_a, max_coeff);
         let coeffs_b = generate_random_coeffs(size_b, max_coeff);
         
-        let poly_a = IntPoly::from(coeffs_a);
-        let poly_b = IntPoly::from(coeffs_b);
+        let poly_a = ZZPoly::from(coeffs_a);
+        let poly_b = ZZPoly::from(coeffs_b);
         
         let bench_name = format!("{}x{}", size_a, size_b);
         
@@ -115,18 +115,18 @@ fn bench_mul_different_sizes(c: &mut Criterion) {
 }
 
 fn bench_mul_with_special_cases(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Mul - special cases");
+    let mut group = c.benchmark_group("ZZPoly Mul - special cases");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
     let poly_sizes = [5usize, 10, 50, 100, 500];
     let max_coeff = 1000i64;
-    let zero = IntPoly::zero();
-    let one = IntPoly::from(vec![1i64]);
+    let zero = ZZPoly::zero();
+    let one = ZZPoly::from(vec![1i64]);
     
     for &size in poly_sizes.iter() {
         let coeffs = generate_random_coeffs(size, max_coeff);
-        let poly = IntPoly::from(coeffs);
+        let poly = ZZPoly::from(coeffs);
         
         // Multiplication by zero
         group.bench_function(BenchmarkId::new("poly_times_zero", size), |b| {
@@ -147,17 +147,17 @@ fn bench_mul_with_special_cases(c: &mut Criterion) {
 }
 
 fn bench_mul_scalar_vs_poly(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Mul - scalar vs polynomial");
+    let mut group = c.benchmark_group("ZZPoly Mul - scalar vs polynomial");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
     let poly_sizes = [10usize, 50, 100, 500, 1000];
     let max_coeff = 1000i64;
-    let scalar = IntPoly::from(vec![42i64]);
+    let scalar = ZZPoly::from(vec![42i64]);
     
     for &size in poly_sizes.iter() {
         let coeffs = generate_random_coeffs(size, max_coeff);
-        let poly = IntPoly::from(coeffs);
+        let poly = ZZPoly::from(coeffs);
         
         group.bench_function(BenchmarkId::new("poly_times_scalar", size), |b| {
             b.iter(|| black_box(&poly * &scalar))
@@ -175,7 +175,7 @@ fn bench_mul_scalar_vs_poly(c: &mut Criterion) {
 // ========== MUL-ASSIGN BENCHMARKS ==========
 
 fn bench_mul_assign_same_size(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly MulAssign - same size");
+    let mut group = c.benchmark_group("ZZPoly MulAssign - same size");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -186,8 +186,8 @@ fn bench_mul_assign_same_size(c: &mut Criterion) {
         let coeffs_a = generate_random_coeffs(size, max_coeff);
         let coeffs_b = generate_random_coeffs(size, max_coeff);
         
-        let poly_a = IntPoly::from(coeffs_a);
-        let poly_b = IntPoly::from(coeffs_b);
+        let poly_a = ZZPoly::from(coeffs_a);
+        let poly_b = ZZPoly::from(coeffs_b);
         
         group.bench_function(BenchmarkId::new("assign_owned", size), |b| {
             b.iter_with_setup(
@@ -215,7 +215,7 @@ fn bench_mul_assign_same_size(c: &mut Criterion) {
 // ========== ALGORITHM SELECTION THRESHOLD BENCHMARKS ==========
 
 fn bench_algorithm_selection_thresholds(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Mul - algorithm selection thresholds");
+    let mut group = c.benchmark_group("ZZPoly Mul - algorithm selection thresholds");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     group.sample_size(20);
@@ -237,8 +237,8 @@ fn bench_algorithm_selection_thresholds(c: &mut Criterion) {
         // Test with small coefficients (should prefer KS or classical)
         let small_coeffs_a = generate_random_coeffs(size, 100);
         let small_coeffs_b = generate_random_coeffs(size, 100);
-        let small_poly_a = IntPoly::from(small_coeffs_a);
-        let small_poly_b = IntPoly::from(small_coeffs_b);
+        let small_poly_a = ZZPoly::from(small_coeffs_a);
+        let small_poly_b = ZZPoly::from(small_coeffs_b);
         
         group.bench_function(BenchmarkId::new("small_coeffs", format!("{}_{}", size, label)), |b| {
             b.iter(|| black_box(&small_poly_a * &small_poly_b))

@@ -16,18 +16,18 @@
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod poly;
-pub mod intpoly;
+pub mod zz_poly;
 pub mod generic;
 
 #[cfg(test)]
 mod tests {
-    use crate::intpoly::IntPoly;
+    use crate::zz_poly::ZZPoly;
 
     #[test]
     fn test_add() {
-        let a = IntPoly::from(&[1, 2, 3]);
-        let b = IntPoly::from([4, 5, 6]);
+        let a = ZZPoly::from(&[1, 2, 3]);
+        let b = ZZPoly::from([4, 5, 6]);
         let c = a + b;
-        assert_eq!(c, IntPoly::from([5, 7, 9]));
+        assert_eq!(c, ZZPoly::from([5, 7, 9]));
     }
 }

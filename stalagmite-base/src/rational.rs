@@ -27,13 +27,16 @@ use crate::traits::{
 
 pub struct RationalField;
 
-impl Parent for RationalField {
-    type Element = Rational;
+pub type QQField = RationalField;
+pub type QQElem = Rational;
+
+impl Parent for QQField {
+    type Element = QQElem;
 }
 
-impl Element for Rational {
-    type Parent = RationalField;
+impl Element for QQElem {
+    type Parent = QQField;
     fn parent(&self) -> Self::Parent {
-        RationalField
+        QQField {}
     }
 }

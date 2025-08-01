@@ -23,25 +23,27 @@ use crate::traits::{
     RingElement
 };
 
-
 pub struct IntegerRing;
 
-impl Parent for IntegerRing {
-    type Element = Integer;
+pub type ZZRing = IntegerRing;
+pub type ZZElem = Integer;
+
+impl Parent for ZZRing {
+    type Element = ZZElem;
 }
 
-impl Ring for IntegerRing {
-    type Element = Integer;
+impl Ring for ZZRing {
+    type Element = ZZElem;
 }
 
-impl Element for Integer {
-    type Parent = IntegerRing;
+impl Element for ZZElem {
+    type Parent = ZZRing;
     fn parent(&self) -> Self::Parent {
-        IntegerRing
+        ZZRing {}
     }
 }
 
-impl RingElement for Integer {
-    type Parent = IntegerRing;
+impl RingElement for ZZElem {
+    type Parent = ZZRing;
 }
 

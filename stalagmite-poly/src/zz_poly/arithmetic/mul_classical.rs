@@ -23,7 +23,7 @@
 //! relative to polynomial degree.
 
 use malachite::Integer;
-use crate::intpoly::IntPoly;
+use crate::zz_poly::ZZPoly;
 
 /// Compute the dot product of two slices with a stride.
 /// 
@@ -61,7 +61,7 @@ fn dot_product(a: &[Integer], b: &[Integer], stride: usize, len: usize) -> Integ
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::mul_classical::classical_mul;
+/// use stalagmite_poly::ZZPoly::arithmetic::mul_classical::classical_mul;
 /// use malachite::Integer;
 /// 
 /// let poly1 = vec![Integer::from(1), Integer::from(2), Integer::from(3)]; // 1 + 2x + 3x²
@@ -121,40 +121,40 @@ pub fn classical_mul(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: us
     result
 }
 
-/// Classical multiplication for IntPoly.
+/// Classical multiplication for ZZPoly.
 /// 
 /// This is a high-level interface to the classical multiplication algorithm
-/// that handles IntPoly types and their internal representation.
+/// that handles ZZPoly types and their internal representation.
 /// 
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
-/// use stalagmite_poly::intpoly::arithmetic::mul_classical::mul_classical;
+/// use stalagmite_poly::ZZPoly::ZZPoly;
+/// use stalagmite_poly::ZZPoly::arithmetic::mul_classical::mul_classical;
 /// 
-/// let poly1 = IntPoly::from(vec![1, 2, 3]); // 1 + 2x + 3x²
-/// let poly2 = IntPoly::from(vec![4, 5]);    // 4 + 5x
+/// let poly1 = ZZPoly::from(vec![1, 2, 3]); // 1 + 2x + 3x²
+/// let poly2 = ZZPoly::from(vec![4, 5]);    // 4 + 5x
 /// let result = mul_classical(&poly1, &poly2);
 /// // (1 + 2x + 3x²)(4 + 5x) = 4 + 13x + 22x² + 15x³
-/// assert_eq!(result, IntPoly::from(vec![4, 13, 22, 15]));
+/// assert_eq!(result, ZZPoly::from(vec![4, 13, 22, 15]));
 /// 
 /// // Multiplication with zero polynomial
-/// let zero = IntPoly::zero();
+/// let zero = ZZPoly::zero();
 /// let result = mul_classical(&poly1, &zero);
 /// assert!(result.is_zero());
 /// 
 /// // Multiplication with constant polynomial
-/// let constant = IntPoly::from(vec![3]);
+/// let constant = ZZPoly::from(vec![3]);
 /// let result = mul_classical(&poly1, &constant);
-/// assert_eq!(result, IntPoly::from(vec![3, 6, 9]));
+/// assert_eq!(result, ZZPoly::from(vec![3, 6, 9]));
 /// ```
-pub fn mul_classical(poly1: &IntPoly, poly2: &IntPoly) -> IntPoly {
+pub fn mul_classical(poly1: &ZZPoly, poly2: &ZZPoly) -> ZZPoly {
     if poly1.is_zero() || poly2.is_zero() {
-        return IntPoly::zero();
+        return ZZPoly::zero();
     }
     
     let coeffs = classical_mul(&poly1.coeffs, poly1.length(), &poly2.coeffs, poly2.length());
-    IntPoly::from_raw(coeffs)
+    ZZPoly::from_raw(coeffs)
 }
 
 #[cfg(test)]
@@ -199,10 +199,10 @@ mod tests {
     }
     
     #[test]
-    fn test_mul_classical_intpoly() {
-        let poly1 = IntPoly::from(vec![1, 2, 3]);
-        let poly2 = IntPoly::from(vec![4, 5]);
+    fn test_mul_classical_ZZPoly() {
+        let poly1 = ZZPoly::from(vec![1, 2, 3]);
+        let poly2 = ZZPoly::from(vec![4, 5]);
         let result = mul_classical(&poly1, &poly2);
-        assert_eq!(result, IntPoly::from(vec![4, 13, 22, 15]));
+        assert_eq!(result, ZZPoly::from(vec![4, 13, 22, 15]));
     }
 }

@@ -19,7 +19,7 @@ extern crate criterion;
 extern crate stalagmite_poly;
 
 use criterion::*;
-use stalagmite_poly::intpoly::IntPoly;
+use stalagmite_poly::zz_poly::ZZPoly;
 use rand::{Rng, SeedableRng};
 use rand::rngs::SmallRng;
 
@@ -31,7 +31,7 @@ fn generate_random_coeffs(size: usize, max_coeff: i64) -> Vec<i64> {
 // ========== REMAINDER BENCHMARKS ==========
 
 fn bench_rem_different_sizes(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly Rem - different sizes");
+    let mut group = c.benchmark_group("ZZPoly Rem - different sizes");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -48,8 +48,8 @@ fn bench_rem_different_sizes(c: &mut Criterion) {
         let dividend_coeffs = generate_random_coeffs(dividend_size, max_coeff);
         let divisor_coeffs = generate_random_coeffs(divisor_size, max_coeff);
         
-        let dividend = IntPoly::from(dividend_coeffs);
-        let divisor = IntPoly::from(divisor_coeffs);
+        let dividend = ZZPoly::from(dividend_coeffs);
+        let divisor = ZZPoly::from(divisor_coeffs);
         
         let bench_name = format!("{}%{}", dividend_size, divisor_size);
         
@@ -68,7 +68,7 @@ fn bench_rem_different_sizes(c: &mut Criterion) {
 }
 
 fn bench_rem_assign(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly RemAssign");
+    let mut group = c.benchmark_group("ZZPoly RemAssign");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
@@ -83,8 +83,8 @@ fn bench_rem_assign(c: &mut Criterion) {
         let dividend_coeffs = generate_random_coeffs(dividend_size, max_coeff);
         let divisor_coeffs = generate_random_coeffs(divisor_size, max_coeff);
         
-        let dividend = IntPoly::from(dividend_coeffs);
-        let divisor = IntPoly::from(divisor_coeffs);
+        let dividend = ZZPoly::from(dividend_coeffs);
+        let divisor = ZZPoly::from(divisor_coeffs);
         
         let bench_name = format!("{}%={}", dividend_size, divisor_size);
         

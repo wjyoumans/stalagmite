@@ -11,36 +11,36 @@ rand = { version = "0.9", features = ["small_rng"] }
 
 
 [[bench]]
-name = "intpoly_add"
-path = "benches/poly/intpoly/add.rs"
+name = "zz_poly_add"
+path = "benches/poly/zz_poly/add.rs"
 harness = false
 
 [[bench]]
-name = "intpoly_sub"
-path = "benches/poly/intpoly/sub.rs"
+name = "zz_poly_sub"
+path = "benches/poly/zz_poly/sub.rs"
 harness = false
 
 [[bench]]
-name = "intpoly_neg"
-path = "benches/poly/intpoly/neg.rs"
+name = "zz_poly_neg"
+path = "benches/poly/zz_poly/neg.rs"
 harness = false
 
 [[bench]]
-name = "intpoly_mul"
-path = "benches/poly/intpoly/mul.rs"
+name = "zz_poly_mul"
+path = "benches/poly/zz_poly/mul.rs"
 harness = false
 
 [[bench]]
-name = "intpoly_sqr"
-path = "benches/poly/intpoly/sqr.rs"
+name = "zz_poly_sqr"
+path = "benches/poly/zz_poly/sqr.rs"
 harness = false
 
 [[bench]]
-name = "intpoly_mullow"
-path = "benches/poly/intpoly/mullow.rs"
+name = "zz_poly_mullow"
+path = "benches/poly/zz_poly/mullow.rs"
 harness = false
 
 [[bench]]
-name = "intpoly_rem"
-path = "benches/poly/intpoly/rem.rs"
+name = "zz_poly_rem"
+path = "benches/poly/zz_poly/rem.rs"
 harness = false

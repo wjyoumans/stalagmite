@@ -16,7 +16,7 @@
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
 use malachite::Integer;
-use crate::intpoly::IntPoly;
+use crate::zz_poly::ZZPoly;
 use std::ops::{
     Rem,
     RemAssign,
@@ -93,7 +93,7 @@ fn polynomial_division_remainder(dividend: &[Integer], divisor: &[Integer]) -> V
     remainder
 }
 
-/// Compute the remainder when dividing two owned `IntPoly` polynomials.
+/// Compute the remainder when dividing two owned `ZZPoly` polynomials.
 ///
 /// This operation performs polynomial long division and returns the remainder.
 /// For polynomials A(x) and B(x), computes A(x) mod B(x) such that 
@@ -102,103 +102,103 @@ fn polynomial_division_remainder(dividend: &[Integer], divisor: &[Integer]) -> V
 /// # Examples
 ///
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
+/// use stalagmite_poly::zz_poly::ZZPoly;
 ///
 /// // x² + 3x + 2 = (x + 1)(x + 2), so (x² + 3x + 2) mod (x + 1) = 0
-/// let dividend = IntPoly::from(vec![2, 3, 1]);  // 2 + 3x + x²
-/// let divisor = IntPoly::from(vec![1, 1]);      // 1 + x
+/// let dividend = ZZPoly::from(vec![2, 3, 1]);  // 2 + 3x + x²
+/// let divisor = ZZPoly::from(vec![1, 1]);      // 1 + x
 /// let remainder = dividend % divisor;
 /// assert!(remainder.is_zero());
 ///
 /// // x² mod (x + 1) = 1 (since x² = (x+1)(x-1) + 1)
-/// let dividend = IntPoly::from(vec![0, 0, 1]);  // x²
-/// let divisor = IntPoly::from(vec![1, 1]);      // x + 1
+/// let dividend = ZZPoly::from(vec![0, 0, 1]);  // x²
+/// let divisor = ZZPoly::from(vec![1, 1]);      // x + 1
 /// let remainder = dividend % divisor;
-/// assert_eq!(remainder, IntPoly::from(vec![1]));
+/// assert_eq!(remainder, ZZPoly::from(vec![1]));
 ///
 /// // Lower degree dividend
-/// let dividend = IntPoly::from(vec![3]);        // 3
-/// let divisor = IntPoly::from(vec![1, 1]);      // 1 + x
+/// let dividend = ZZPoly::from(vec![3]);        // 3
+/// let divisor = ZZPoly::from(vec![1, 1]);      // 1 + x
 /// let remainder = dividend % divisor;
-/// assert_eq!(remainder, IntPoly::from(vec![3]));
+/// assert_eq!(remainder, ZZPoly::from(vec![3]));
 /// ```
 ///
 /// # Panics
 ///
 /// Panics if the divisor is zero or if exact division is not possible
 /// (when working over integers, some divisions may not be exact).
-impl Rem for IntPoly {
-    type Output = IntPoly;
-    fn rem(self, rhs: IntPoly) -> IntPoly {
+impl Rem for ZZPoly {
+    type Output = ZZPoly;
+    fn rem(self, rhs: ZZPoly) -> ZZPoly {
         if rhs.is_zero() {
             panic!("Division by zero polynomial");
         }
         if self.is_zero() {
-            return IntPoly::zero();
+            return ZZPoly::zero();
         }
 
         let remainder = polynomial_division_remainder(&self.coeffs, &rhs.coeffs);
-        IntPoly::from_raw(remainder)
+        ZZPoly::from_raw(remainder)
     }
 }
 
-/// Compute the remainder when dividing an owned `IntPoly` by an `IntPoly` reference.
+/// Compute the remainder when dividing an owned `ZZPoly` by an `ZZPoly` reference.
 ///
 /// # Examples
 ///
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
+/// use stalagmite_poly::zz_poly::ZZPoly;
 ///
-/// let dividend = IntPoly::from(vec![1, 2, 1]);  // 1 + 2x + x²
-/// let divisor = IntPoly::from(vec![1, 1]);      // 1 + x
+/// let dividend = ZZPoly::from(vec![1, 2, 1]);  // 1 + 2x + x²
+/// let divisor = ZZPoly::from(vec![1, 1]);      // 1 + x
 /// let remainder = dividend % &divisor;
 /// assert!(remainder.is_zero());
 /// ```
-impl Rem<&IntPoly> for IntPoly {
-    type Output = IntPoly;
+impl Rem<&ZZPoly> for ZZPoly {
+    type Output = ZZPoly;
     #[inline]
-    fn rem(self, rhs: &IntPoly) -> IntPoly {
+    fn rem(self, rhs: &ZZPoly) -> ZZPoly {
         if rhs.is_zero() {
             panic!("Division by zero polynomial");
         }
         if self.is_zero() {
-            return IntPoly::zero();
+            return ZZPoly::zero();
         }
 
         let remainder = polynomial_division_remainder(&self.coeffs, &rhs.coeffs);
-        IntPoly::from_raw(remainder)
+        ZZPoly::from_raw(remainder)
     }
 }
 
-/// Compute the remainder when dividing an `IntPoly` reference by an owned `IntPoly`.
+/// Compute the remainder when dividing an `ZZPoly` reference by an owned `ZZPoly`.
 ///
 /// # Examples
 ///
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
+/// use stalagmite_poly::zz_poly::ZZPoly;
 ///
-/// let dividend = IntPoly::from(vec![4, 4, 1]);  // 4 + 4x + x²
-/// let divisor = IntPoly::from(vec![2, 1]);      // 2 + x
+/// let dividend = ZZPoly::from(vec![4, 4, 1]);  // 4 + 4x + x²
+/// let divisor = ZZPoly::from(vec![2, 1]);      // 2 + x
 /// let remainder = &dividend % divisor;
 /// assert!(remainder.is_zero());
 /// ```
-impl Rem<IntPoly> for &IntPoly {
-    type Output = IntPoly;
+impl Rem<ZZPoly> for &ZZPoly {
+    type Output = ZZPoly;
     #[inline]
-    fn rem(self, rhs: IntPoly) -> IntPoly {
+    fn rem(self, rhs: ZZPoly) -> ZZPoly {
         if rhs.is_zero() {
             panic!("Division by zero polynomial");
         }
         if self.is_zero() {
-            return IntPoly::zero();
+            return ZZPoly::zero();
         }
 
         let remainder = polynomial_division_remainder(&self.coeffs, &rhs.coeffs);
-        IntPoly::from_raw(remainder)
+        ZZPoly::from_raw(remainder)
     }
 }
 
-/// Compute the remainder when dividing two `IntPoly` references.
+/// Compute the remainder when dividing two `ZZPoly` references.
 ///
 /// This is the most memory-efficient remainder operation as it doesn't take ownership
 /// of either polynomial and creates a new result.
@@ -206,39 +206,39 @@ impl Rem<IntPoly> for &IntPoly {
 /// # Examples
 ///
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
+/// use stalagmite_poly::zz_poly::ZZPoly;
 ///
-/// let dividend = IntPoly::from(vec![6, 7, 2]);  // 6 + 7x + 2x²
-/// let divisor = IntPoly::from(vec![3, 1]);      // 3 + x
+/// let dividend = ZZPoly::from(vec![6, 7, 2]);  // 6 + 7x + 2x²
+/// let divisor = ZZPoly::from(vec![3, 1]);      // 3 + x
 /// let remainder = &dividend % &divisor;
-/// assert_eq!(remainder, IntPoly::from(vec![3]));  // remainder is 3
+/// assert_eq!(remainder, ZZPoly::from(vec![3]));  // remainder is 3
 ///
 /// // Both polynomials remain unchanged
-/// assert_eq!(dividend, IntPoly::from(vec![6, 7, 2]));
-/// assert_eq!(divisor, IntPoly::from(vec![3, 1]));
+/// assert_eq!(dividend, ZZPoly::from(vec![6, 7, 2]));
+/// assert_eq!(divisor, ZZPoly::from(vec![3, 1]));
 ///
 /// // x³ mod (x² + 1) = x (since x³ = x(x² + 1) - x)
-/// let dividend = IntPoly::from(vec![0, 0, 0, 1]);  // x³
-/// let divisor = IntPoly::from(vec![1, 0, 1]);      // 1 + x²
+/// let dividend = ZZPoly::from(vec![0, 0, 0, 1]);  // x³
+/// let divisor = ZZPoly::from(vec![1, 0, 1]);      // 1 + x²
 /// let remainder = &dividend % &divisor;
-/// assert_eq!(remainder, IntPoly::from(vec![0, -1]));  // -x
+/// assert_eq!(remainder, ZZPoly::from(vec![0, -1]));  // -x
 /// ```
-impl Rem<&IntPoly> for &IntPoly {
-    type Output = IntPoly;
-    fn rem(self, rhs: &IntPoly) -> IntPoly {
+impl Rem<&ZZPoly> for &ZZPoly {
+    type Output = ZZPoly;
+    fn rem(self, rhs: &ZZPoly) -> ZZPoly {
         if rhs.is_zero() {
             panic!("Division by zero polynomial");
         }
         if self.is_zero() {
-            return IntPoly::zero();
+            return ZZPoly::zero();
         }
 
         let remainder = polynomial_division_remainder(&self.coeffs, &rhs.coeffs);
-        IntPoly::from_raw(remainder)
+        ZZPoly::from_raw(remainder)
     }
 }
 
-/// Remainder-assign an owned `IntPoly` to this polynomial.
+/// Remainder-assign an owned `ZZPoly` to this polynomial.
 ///
 /// This modifies the left-hand side polynomial in place by computing
 /// the remainder when dividing it by the right-hand side polynomial.
@@ -246,26 +246,26 @@ impl Rem<&IntPoly> for &IntPoly {
 /// # Examples
 ///
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
+/// use stalagmite_poly::zz_poly::ZZPoly;
 ///
-/// let mut dividend = IntPoly::from(vec![2, 3, 1]);  // 2 + 3x + x²
-/// let divisor = IntPoly::from(vec![1, 1]);          // 1 + x
+/// let mut dividend = ZZPoly::from(vec![2, 3, 1]);  // 2 + 3x + x²
+/// let divisor = ZZPoly::from(vec![1, 1]);          // 1 + x
 /// dividend %= divisor;
 /// assert!(dividend.is_zero());
 ///
 /// // Another example: x² mod (x + 2)
-/// let mut dividend = IntPoly::from(vec![0, 0, 1]);  // x²
-/// let divisor = IntPoly::from(vec![2, 1]);          // 2 + x
+/// let mut dividend = ZZPoly::from(vec![0, 0, 1]);  // x²
+/// let divisor = ZZPoly::from(vec![2, 1]);          // 2 + x
 /// dividend %= divisor;
-/// assert_eq!(dividend, IntPoly::from(vec![4]));     // 4
+/// assert_eq!(dividend, ZZPoly::from(vec![4]));     // 4
 /// ```
-impl RemAssign<IntPoly> for IntPoly {
-    fn rem_assign(&mut self, rhs: IntPoly) {
+impl RemAssign<ZZPoly> for ZZPoly {
+    fn rem_assign(&mut self, rhs: ZZPoly) {
         *self = std::mem::take(self) % rhs;
     }
 }
 
-/// Remainder-assign an `IntPoly` reference to this polynomial.
+/// Remainder-assign an `ZZPoly` reference to this polynomial.
 ///
 /// This modifies the left-hand side polynomial in place by computing
 /// the remainder when dividing it by the right-hand side polynomial,
@@ -274,17 +274,17 @@ impl RemAssign<IntPoly> for IntPoly {
 /// # Examples
 ///
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
+/// use stalagmite_poly::zz_poly::ZZPoly;
 ///
-/// let mut dividend = IntPoly::from(vec![6, 7, 2]);  // 6 + 7x + 2x²
-/// let divisor = IntPoly::from(vec![3, 1]);          // 3 + x
+/// let mut dividend = ZZPoly::from(vec![6, 7, 2]);  // 6 + 7x + 2x²
+/// let divisor = ZZPoly::from(vec![3, 1]);          // 3 + x
 /// dividend %= &divisor;
-/// assert_eq!(dividend, IntPoly::from(vec![3]));
+/// assert_eq!(dividend, ZZPoly::from(vec![3]));
 /// // divisor is still available for use
-/// assert_eq!(divisor, IntPoly::from(vec![3, 1]));
+/// assert_eq!(divisor, ZZPoly::from(vec![3, 1]));
 /// ```
-impl RemAssign<&IntPoly> for IntPoly {
-    fn rem_assign(&mut self, rhs: &IntPoly) {
+impl RemAssign<&ZZPoly> for ZZPoly {
+    fn rem_assign(&mut self, rhs: &ZZPoly) {
         *self = std::mem::take(self) % rhs;
     }
 }

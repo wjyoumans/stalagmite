@@ -26,8 +26,8 @@
 //! hybrid approach that falls back to classical multiplication for small inputs.
 
 use malachite::Integer;
-use crate::intpoly::IntPoly;
-use crate::intpoly::arithmetic::mul_classical::classical_mul;
+use crate::zz_poly::ZZPoly;
+use crate::zz_poly::arithmetic::mul_classical::classical_mul;
 
 /// Threshold below which we use classical multiplication instead of Karatsuba.
 /// This avoids the overhead of recursion for small polynomials.
@@ -81,7 +81,7 @@ fn sub_at_offset(dst: &mut [Integer], src: &[Integer], offset: usize) {
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::mul_karatsuba::karatsuba_mul;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_karatsuba::karatsuba_mul;
 /// use malachite::Integer;
 /// 
 /// let poly1 = vec![Integer::from(1), Integer::from(2), Integer::from(3), Integer::from(4)];
@@ -220,50 +220,50 @@ pub fn karatsuba_mul(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: us
     result
 }
 
-/// Karatsuba multiplication for IntPoly.
+/// Karatsuba multiplication for ZZPoly.
 /// 
 /// This is a high-level interface to the Karatsuba multiplication algorithm
-/// that handles IntPoly types and their internal representation.
+/// that handles ZZPoly types and their internal representation.
 /// 
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
-/// use stalagmite_poly::intpoly::arithmetic::mul_karatsuba::mul_karatsuba;
+/// use stalagmite_poly::zz_poly::ZZPoly;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_karatsuba::mul_karatsuba;
 /// 
-/// let poly1 = IntPoly::from(vec![1, 2, 3, 4]); // 1 + 2x + 3x² + 4x³
-/// let poly2 = IntPoly::from(vec![5, 6, 7, 8]); // 5 + 6x + 7x² + 8x³  
+/// let poly1 = ZZPoly::from(vec![1, 2, 3, 4]); // 1 + 2x + 3x² + 4x³
+/// let poly2 = ZZPoly::from(vec![5, 6, 7, 8]); // 5 + 6x + 7x² + 8x³  
 /// let result = mul_karatsuba(&poly1, &poly2);
 /// 
 /// // Verify against classical multiplication
-/// use stalagmite_poly::intpoly::arithmetic::mul_classical::mul_classical;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_classical::mul_classical;
 /// let expected = mul_classical(&poly1, &poly2);
 /// assert_eq!(result, expected);
 /// 
 /// // Multiplication with zero polynomial
-/// let zero = IntPoly::zero();
+/// let zero = ZZPoly::zero();
 /// let result = mul_karatsuba(&poly1, &zero);
 /// assert!(result.is_zero());
 /// 
 /// // Small polynomials (should fall back to classical)
-/// let small1 = IntPoly::from(vec![1, 2]);
-/// let small2 = IntPoly::from(vec![3, 4]);
+/// let small1 = ZZPoly::from(vec![1, 2]);
+/// let small2 = ZZPoly::from(vec![3, 4]);
 /// let result = mul_karatsuba(&small1, &small2);
-/// assert_eq!(result, IntPoly::from(vec![3, 10, 8]));
+/// assert_eq!(result, ZZPoly::from(vec![3, 10, 8]));
 /// ```
-pub fn mul_karatsuba(poly1: &IntPoly, poly2: &IntPoly) -> IntPoly {
+pub fn mul_karatsuba(poly1: &ZZPoly, poly2: &ZZPoly) -> ZZPoly {
     if poly1.is_zero() || poly2.is_zero() {
-        return IntPoly::zero();
+        return ZZPoly::zero();
     }
     
     let coeffs = karatsuba_mul(&poly1.coeffs, poly1.length(), &poly2.coeffs, poly2.length());
-    IntPoly::from_raw(coeffs)
+    ZZPoly::from_raw(coeffs)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::intpoly::arithmetic::mul_classical::classical_mul;
+    use crate::zz_poly::arithmetic::mul_classical::classical_mul;
     
     #[test]
     fn test_karatsuba_vs_classical_small() {
@@ -308,14 +308,14 @@ mod tests {
     }
     
     #[test]
-    fn test_mul_karatsuba_intpoly() {
-        let poly1 = IntPoly::from(vec![1, 2, 3, 4, 5, 6, 7, 8]);
-        let poly2 = IntPoly::from(vec![8, 7, 6, 5, 4, 3, 2, 1]);
+    fn test_mul_karatsuba_zz_poly() {
+        let poly1 = ZZPoly::from(vec![1, 2, 3, 4, 5, 6, 7, 8]);
+        let poly2 = ZZPoly::from(vec![8, 7, 6, 5, 4, 3, 2, 1]);
         
         let karatsuba_result = mul_karatsuba(&poly1, &poly2);
         
         // Verify it matches classical multiplication
-        use crate::intpoly::arithmetic::mul_classical::mul_classical;
+        use crate::zz_poly::arithmetic::mul_classical::mul_classical;
         let classical_result = mul_classical(&poly1, &poly2);
         assert_eq!(karatsuba_result, classical_result);
     }

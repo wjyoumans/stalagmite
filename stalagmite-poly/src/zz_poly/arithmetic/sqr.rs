@@ -27,9 +27,9 @@
 //! This allows us to compute each coefficient more efficiently than general multiplication.
 
 use malachite::Integer;
-use crate::intpoly::IntPoly;
-use crate::intpoly::arithmetic::mul_classical::classical_mul;
-use crate::intpoly::arithmetic::mul_karatsuba::karatsuba_mul;
+use crate::zz_poly::ZZPoly;
+use crate::zz_poly::arithmetic::mul_classical::classical_mul;
+use crate::zz_poly::arithmetic::mul_karatsuba::karatsuba_mul;
 
 /// Threshold below which we use the tiny squaring algorithm.
 const TINY_SQR_THRESHOLD: usize = 8;
@@ -58,7 +58,7 @@ const KARATSUBA_SQR_THRESHOLD: usize = 16;
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::sqr::tiny_sqr;
+/// use stalagmite_poly::zz_poly::arithmetic::sqr::tiny_sqr;
 /// use malachite::Integer;
 /// 
 /// let poly = vec![Integer::from(1), Integer::from(2), Integer::from(3)]; // 1 + 2x + 3x²
@@ -104,7 +104,7 @@ pub fn tiny_sqr(poly: &[Integer], len: usize) -> Vec<Integer> {
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::sqr::classical_sqr;
+/// use stalagmite_poly::zz_poly::arithmetic::sqr::classical_sqr;
 /// use malachite::Integer;
 /// 
 /// let poly = vec![Integer::from(2), Integer::from(3), Integer::from(1)]; // 2 + 3x + x²
@@ -136,14 +136,14 @@ pub fn classical_sqr(poly: &[Integer], len: usize) -> Vec<Integer> {
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::sqr::karatsuba_sqr;
+/// use stalagmite_poly::zz_poly::arithmetic::sqr::karatsuba_sqr;
 /// use malachite::Integer;
 /// 
 /// let poly: Vec<Integer> = (1..=10).map(Integer::from).collect();
 /// let result = karatsuba_sqr(&poly, poly.len());
 /// 
 /// // Verify against classical squaring
-/// use stalagmite_poly::intpoly::arithmetic::sqr::classical_sqr;
+/// use stalagmite_poly::zz_poly::arithmetic::sqr::classical_sqr;
 /// let expected = classical_sqr(&poly, poly.len());
 /// assert_eq!(result, expected);
 /// ```
@@ -218,7 +218,7 @@ pub fn karatsuba_sqr(poly: &[Integer], len: usize) -> Vec<Integer> {
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::arithmetic::sqr::auto_sqr;
+/// use stalagmite_poly::zz_poly::arithmetic::sqr::auto_sqr;
 /// use malachite::Integer;
 /// 
 /// let small_poly = vec![Integer::from(1), Integer::from(2)];
@@ -243,7 +243,7 @@ pub fn auto_sqr(poly: &[Integer], len: usize) -> Vec<Integer> {
     }
 }
 
-/// Square an IntPoly using the most appropriate algorithm.
+/// Square an ZZPoly using the most appropriate algorithm.
 /// 
 /// This is a high-level interface that automatically selects the best
 /// squaring algorithm based on the polynomial characteristics.
@@ -251,37 +251,37 @@ pub fn auto_sqr(poly: &[Integer], len: usize) -> Vec<Integer> {
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::intpoly::IntPoly;
-/// use stalagmite_poly::intpoly::arithmetic::sqr::sqr;
+/// use stalagmite_poly::zz_poly::ZZPoly;
+/// use stalagmite_poly::zz_poly::arithmetic::sqr::sqr;
 /// 
-/// let poly = IntPoly::from(vec![1, 2, 3]); // 1 + 2x + 3x²
+/// let poly = ZZPoly::from(vec![1, 2, 3]); // 1 + 2x + 3x²
 /// let result = sqr(&poly);
 /// // (1 + 2x + 3x²)² = 1 + 4x + 10x² + 12x³ + 9x⁴
-/// assert_eq!(result, IntPoly::from(vec![1, 4, 10, 12, 9]));
+/// assert_eq!(result, ZZPoly::from(vec![1, 4, 10, 12, 9]));
 /// 
 /// // Squaring zero polynomial
-/// let zero = IntPoly::zero();
+/// let zero = ZZPoly::zero();
 /// let result = sqr(&zero);
 /// assert!(result.is_zero());
 /// 
 /// // Squaring constant polynomial
-/// let constant = IntPoly::from(vec![5]);
+/// let constant = ZZPoly::from(vec![5]);
 /// let result = sqr(&constant);
-/// assert_eq!(result, IntPoly::from(vec![25]));
+/// assert_eq!(result, ZZPoly::from(vec![25]));
 /// 
 /// // Verify squaring matches multiplication
-/// let poly = IntPoly::from(vec![1, 2, 3, 4, 5]);
+/// let poly = ZZPoly::from(vec![1, 2, 3, 4, 5]);
 /// let sqr_result = sqr(&poly);
 /// let mul_result = &poly * &poly;
 /// assert_eq!(sqr_result, mul_result);
 /// ```
-pub fn sqr(poly: &IntPoly) -> IntPoly {
+pub fn sqr(poly: &ZZPoly) -> ZZPoly {
     if poly.is_zero() {
-        return IntPoly::zero();
+        return ZZPoly::zero();
     }
     
     let coeffs = auto_sqr(&poly.coeffs, poly.length());
-    IntPoly::from_raw(coeffs)
+    ZZPoly::from_raw(coeffs)
 }
 
 #[cfg(test)]
@@ -342,10 +342,10 @@ mod tests {
     }
     
     #[test]
-    fn test_sqr_intpoly() {
-        let poly = IntPoly::from(vec![1, 2, 3]);
+    fn test_sqr_zz_poly() {
+        let poly = ZZPoly::from(vec![1, 2, 3]);
         let result = sqr(&poly);
-        assert_eq!(result, IntPoly::from(vec![1, 4, 10, 12, 9]));
+        assert_eq!(result, ZZPoly::from(vec![1, 4, 10, 12, 9]));
         
         // Verify against multiplication
         let mul_result = &poly * &poly;
@@ -355,15 +355,15 @@ mod tests {
     #[test]
     fn test_sqr_edge_cases() {
         // Zero polynomial
-        let zero = IntPoly::zero();
+        let zero = ZZPoly::zero();
         assert!(sqr(&zero).is_zero());
         
         // Constant polynomial
-        let constant = IntPoly::from(vec![3]);
-        assert_eq!(sqr(&constant), IntPoly::from(vec![9]));
+        let constant = ZZPoly::from(vec![3]);
+        assert_eq!(sqr(&constant), ZZPoly::from(vec![9]));
         
         // Single term
-        let single = IntPoly::from(vec![0, 5]); // 5x
-        assert_eq!(sqr(&single), IntPoly::from(vec![0, 0, 25])); // 25x²
+        let single = ZZPoly::from(vec![0, 5]); // 5x
+        assert_eq!(sqr(&single), ZZPoly::from(vec![0, 0, 25])); // 25x²
     }
 }
