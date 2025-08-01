@@ -20,24 +20,38 @@ extern crate stalagmite_poly;
 
 use criterion::*;
 use stalagmite_poly::intpoly::IntPoly;
+use rand::{Rng, SeedableRng};
+use rand::rngs::SmallRng;
+use stalagmite_bench::generate_random_coeffs;
 
-fn generate_random_coeffs(size: usize, max_coeff: i32) -> Vec<i32> {
-    (0..size).map(|i| (i as i32 % max_coeff) + 1).collect()
-}
+// fn generate_random_coeffs(size: usize, max_coeff: i32) -> Vec<i32> {
+//     let mut rng = SmallRng::seed_from_u64(0x1234567890ABCDEF); // Fixed seed for reproducible benchmarks
+//     (0..size).map(|_| rng.random_range(1..=max_coeff)).collect()
+// }
 
-// ========== ADDITION BENCHMARKS ==========
+// fn generate_mixed_sign_coeffs(size: usize, max_coeff: i32) -> Vec<i32> {
+//     let mut rng = SmallRng::seed_from_u64(0xFEDCBA0987654321); // Different seed for variety
+//     (0..size).map(|_| {
+//         let val = rng.random_range(1..=max_coeff);
+//         if rng.gen_bool(0.5) { val } else { -val }
+//     }).collect()
+// }
+
+// Large coefficient benchmarks removed due to complexity
+
+// ========== BASIC ADDITION BENCHMARKS ==========
 
 fn bench_add_same_size(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly addition - same size");
+    let mut group = c.benchmark_group("IntPoly Add - same size");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
-    let poly_sizes = [1usize, 5, 10, 50, 100, 500, 1000];
+    let poly_sizes = [2, 10, 100, 1000, 10000];
     let max_coeff = 1000;
     
     for &size in poly_sizes.iter() {
-        let coeffs_a = generate_random_coeffs(size, max_coeff);
-        let coeffs_b = generate_random_coeffs(size, max_coeff);
+        let coeffs_a = generate_random_coeffs(size, -max_coeff,max_coeff);
+        let coeffs_b = generate_random_coeffs(size, -max_coeff, max_coeff);
         
         let poly_a = IntPoly::from(coeffs_a);
         let poly_b = IntPoly::from(coeffs_b);
@@ -71,22 +85,21 @@ fn bench_add_same_size(c: &mut Criterion) {
 }
 
 fn bench_add_different_sizes(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly addition - different sizes");
+    let mut group = c.benchmark_group("IntPoly Add - different sizes");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
     let size_pairs = [
-        (1usize, 10usize),
-        (5, 50),
+        (1, 100),
         (10, 100),
-        (50, 500),
+        (10, 1000),
         (100, 1000),
     ];
     let max_coeff = 1000;
     
     for &(size_a, size_b) in size_pairs.iter() {
-        let coeffs_a = generate_random_coeffs(size_a, max_coeff);
-        let coeffs_b = generate_random_coeffs(size_b, max_coeff);
+        let coeffs_a = generate_random_coeffs(size_a, -max_coeff, max_coeff);
+        let coeffs_b = generate_random_coeffs(size_b, -max_coeff, max_coeff);
         
         let poly_a = IntPoly::from(coeffs_a);
         let poly_b = IntPoly::from(coeffs_b);
@@ -103,29 +116,98 @@ fn bench_add_different_sizes(c: &mut Criterion) {
         group.bench_function(BenchmarkId::new("ref_ref", &bench_name), |b| {
             b.iter(|| black_box(&poly_a + &poly_b))
         });
+        
+        // Test the reverse as well
+        let bench_name_rev = format!("{}+{}", size_b, size_a);
+        group.bench_function(BenchmarkId::new("rev_ref_ref", &bench_name_rev), |b| {
+            b.iter(|| black_box(&poly_b + &poly_a))
+        });
     }
     group.finish();
 }
 
-fn bench_add_with_zero(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly addition - with zero");
+// ========== ADD-ASSIGN BENCHMARKS ==========
+
+fn bench_add_assign_same_size(c: &mut Criterion) {
+    let mut group = c.benchmark_group("IntPoly AddAssign - same size");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
-    let poly_sizes = [1usize, 10, 50, 100, 500];
+    let poly_sizes = [2, 10, 100, 1000, 10000];
     let max_coeff = 1000;
-    let zero = IntPoly::zero();
     
     for &size in poly_sizes.iter() {
-        let coeffs = generate_random_coeffs(size, max_coeff);
-        let poly = IntPoly::from(coeffs);
+        let coeffs_a = generate_random_coeffs(size, -max_coeff, max_coeff);
+        let coeffs_b = generate_random_coeffs(size, -max_coeff, max_coeff);
         
-        group.bench_function(BenchmarkId::new("poly_plus_zero", size), |b| {
-            b.iter(|| black_box(&poly + &zero))
+        let poly_a = IntPoly::from(coeffs_a);
+        let poly_b = IntPoly::from(coeffs_b);
+        
+        group.bench_function(BenchmarkId::new("assign_owned", size), |b| {
+            b.iter_with_setup(
+                || (poly_a.clone(), poly_b.clone()),
+                |(mut a, b)| {
+                    a += b;
+                    black_box(a)
+                }
+            )
         });
         
-        group.bench_function(BenchmarkId::new("zero_plus_poly", size), |b| {
-            b.iter(|| black_box(&zero + &poly))
+        group.bench_function(BenchmarkId::new("assign_ref", size), |b| {
+            b.iter_with_setup(
+                || poly_a.clone(),
+                |mut a| {
+                    a += &poly_b;
+                    black_box(a)
+                }
+            )
+        });
+    }
+    group.finish();
+}
+
+fn bench_add_assign_different_sizes(c: &mut Criterion) {
+    let mut group = c.benchmark_group("IntPoly AddAssign - different sizes");
+    let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
+    group.plot_config(plot_config);
+    
+    let size_pairs = [
+        (1, 100),
+        (10, 100),
+        (10, 1000),
+        (100, 1000),
+    ];
+    let max_coeff = 1000;
+    
+    for &(size_a, size_b) in size_pairs.iter() {
+        let coeffs_a = generate_random_coeffs(size_a, -max_coeff, max_coeff);
+        let coeffs_b = generate_random_coeffs(size_b, -max_coeff, max_coeff);
+        
+        let poly_a = IntPoly::from(coeffs_a);
+        let poly_b = IntPoly::from(coeffs_b);
+        
+        let bench_name = format!("{}+={}", size_a, size_b);
+        
+        group.bench_function(BenchmarkId::new("assign_ref", &bench_name), |b| {
+            b.iter_with_setup(
+                || poly_a.clone(),
+                |mut a| {
+                    a += &poly_b;
+                    black_box(a)
+                }
+            )
+        });
+        
+        // Test the reverse case (larger += smaller)
+        let bench_name_rev = format!("{}+={}", size_b, size_a);
+        group.bench_function(BenchmarkId::new("assign_ref_rev", &bench_name_rev), |b| {
+            b.iter_with_setup(
+                || poly_b.clone(),
+                |mut b| {
+                    b += &poly_a;
+                    black_box(b)
+                }
+            )
         });
     }
     group.finish();
@@ -134,17 +216,17 @@ fn bench_add_with_zero(c: &mut Criterion) {
 // ========== SUM BENCHMARKS ==========
 
 fn bench_sum_small_polys(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly sum - small polynomials");
+    let mut group = c.benchmark_group("IntPoly Sum - small polynomials");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
-    let num_polys = [10u64, 100, 1000, 10000];
+    let num_polys = [10u64, 100, 1000, 5000];
     let poly_size = 5;
     let max_coeff = 100;
     
     for &n in num_polys.iter() {
         let coeffs_data: Vec<Vec<i32>> = (0..n)
-            .map(|_| generate_random_coeffs(poly_size, max_coeff))
+            .map(|_| generate_random_coeffs(poly_size, -max_coeff, max_coeff))
             .collect();
         
         let polys: Vec<IntPoly> = coeffs_data.iter()
@@ -166,17 +248,17 @@ fn bench_sum_small_polys(c: &mut Criterion) {
 }
 
 fn bench_sum_medium_polys(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly sum - medium polynomials");
+    let mut group = c.benchmark_group("IntPoly Sum - medium polynomials");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
     let num_polys = [10u64, 100, 1000];
-    let poly_size = 50;
+    let poly_size = 100;
     let max_coeff = 1000;
     
     for &n in num_polys.iter() {
         let coeffs_data: Vec<Vec<i32>> = (0..n)
-            .map(|_| generate_random_coeffs(poly_size, max_coeff))
+            .map(|_| generate_random_coeffs(poly_size, -max_coeff, max_coeff))
             .collect();
         
         let polys: Vec<IntPoly> = coeffs_data.iter()
@@ -198,17 +280,17 @@ fn bench_sum_medium_polys(c: &mut Criterion) {
 }
 
 fn bench_sum_large_polys(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly sum - large polynomials");
+    let mut group = c.benchmark_group("IntPoly Sum - medium polynomials");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
     let num_polys = [10u64, 100];
-    let poly_size = 500;
+    let poly_size = 1000;
     let max_coeff = 10000;
     
     for &n in num_polys.iter() {
         let coeffs_data: Vec<Vec<i32>> = (0..n)
-            .map(|_| generate_random_coeffs(poly_size, max_coeff))
+            .map(|_| generate_random_coeffs(poly_size, -max_coeff, max_coeff))
             .collect();
         
         let polys: Vec<IntPoly> = coeffs_data.iter()
@@ -230,17 +312,17 @@ fn bench_sum_large_polys(c: &mut Criterion) {
 }
 
 fn bench_sum_varying_sizes(c: &mut Criterion) {
-    let mut group = c.benchmark_group("IntPoly sum - varying polynomial sizes");
+    let mut group = c.benchmark_group("IntPoly Sum - varying polynomial sizes");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
     
     let num_polys = 100;
-    let poly_sizes = [1usize, 2, 5, 10, 20, 50, 100, 200];
+    let poly_sizes = [1, 10, 50, 100, 200];
     let max_coeff = 1000;
     
     for &size in poly_sizes.iter() {
         let coeffs_data: Vec<Vec<i32>> = (0..num_polys)
-            .map(|_| generate_random_coeffs(size, max_coeff))
+            .map(|_| generate_random_coeffs(size, -max_coeff, max_coeff))
             .collect();
         
         let polys: Vec<IntPoly> = coeffs_data.iter()
@@ -261,13 +343,23 @@ fn bench_sum_varying_sizes(c: &mut Criterion) {
     group.finish();
 }
 
+// ========== INTPOLY ADDITION BENCHMARKS ==========
+
 criterion_group! {
     name = addition_benches;
     config = Criterion::default().significance_level(0.1).sample_size(20);
     targets = 
         bench_add_same_size,
         bench_add_different_sizes,
-        bench_add_with_zero
+
+}
+
+criterion_group! {
+    name = add_assign_benches;
+    config = Criterion::default().significance_level(0.1).sample_size(20);
+    targets = 
+        bench_add_assign_same_size,
+        bench_add_assign_different_sizes
 }
 
 criterion_group! {
@@ -275,9 +367,13 @@ criterion_group! {
     config = Criterion::default().significance_level(0.1).sample_size(20);
     targets = 
         bench_sum_small_polys,
-        bench_sum_medium_polys, 
+        bench_sum_medium_polys,
         bench_sum_large_polys,
         bench_sum_varying_sizes
 }
 
-criterion_main!(addition_benches, sum_benches);
+criterion_main!(
+    addition_benches,
+    add_assign_benches, 
+    sum_benches
+);

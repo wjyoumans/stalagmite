@@ -6,8 +6,41 @@ edition = "2021"
 [dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
 stalagmite-poly = { path = "../stalagmite-poly" }
-malachite = "0.4.0"
+malachite = "0.6.1"
+rand = { version = "0.9", features = ["small_rng"] }
+
 
 [[bench]]
-name = "intpoly_operations"
+name = "intpoly_add"
+path = "benches/poly/intpoly/add.rs"
+harness = false
+
+[[bench]]
+name = "intpoly_sub"
+path = "benches/poly/intpoly/sub.rs"
+harness = false
+
+[[bench]]
+name = "intpoly_neg"
+path = "benches/poly/intpoly/neg.rs"
+harness = false
+
+[[bench]]
+name = "intpoly_mul"
+path = "benches/poly/intpoly/mul.rs"
+harness = false
+
+[[bench]]
+name = "intpoly_sqr"
+path = "benches/poly/intpoly/sqr.rs"
+harness = false
+
+[[bench]]
+name = "intpoly_mullow"
+path = "benches/poly/intpoly/mullow.rs"
+harness = false
+
+[[bench]]
+name = "intpoly_rem"
+path = "benches/poly/intpoly/rem.rs"
 harness = false
