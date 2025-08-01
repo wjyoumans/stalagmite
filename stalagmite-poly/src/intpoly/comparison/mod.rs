@@ -17,6 +17,7 @@
 
 use crate::intpoly::IntPoly;
 use std::cmp::PartialEq;
+use malachite::Integer;
 
 impl PartialEq for IntPoly {
     fn eq(&self, other: &Self) -> bool {
@@ -24,5 +25,18 @@ impl PartialEq for IntPoly {
             return false;
         }
         self.coeffs == other.coeffs
+    }
+}
+
+impl PartialEq<Integer> for IntPoly {
+    fn eq(&self, other: &Integer) -> bool {
+        self.length() == 0 && *other == 0 ||
+            self.length() == 1 && self.coeffs[0] == *other
+    }
+}
+
+impl PartialEq<IntPoly> for Integer {
+    fn eq(&self, other: &IntPoly) -> bool {
+        other == self
     }
 }

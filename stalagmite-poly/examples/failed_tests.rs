@@ -1,26 +1,31 @@
 use stalagmite_poly::intpoly::IntPoly;
+use malachite::Integer;
+use std::ops::Deref;
 
 fn main() {
-    let polys = vec![
-        IntPoly::from([1, 0]),
-        IntPoly::from(vec![0, 1]),
-        IntPoly::from(&[2, 3]),
-    ];
-    let mut result: IntPoly = IntPoly::zero();
-    result += &polys[0];
-    println!("{:?}", result);
-    result += &polys[1];
-    println!("{:?}", result);
-    result += &polys[2];
-    println!("{:?}", result);
+    // Deref means we can implicitly treat IntPoly like an
+    // (immutable) Vec<Integer>, so we get some interesting
+    // functionality "for free".
+    let a = IntPoly::from(vec![1, 2, 3, -1, 0, 1]);
+    let b = &a[0] + &a[1];
+    println!("{:?}", b);
+    
+    let b = a.contains(&Integer::from(1));
+    println!("{:?}", b);
 
-    let a = IntPoly::from(vec![1, 2, -10]);
-    let b = IntPoly::from(vec![4, 5, 6, 7, -4]);
-    let c = a + &b;
-    println!("{:?}", c);
-    assert_eq!(c, IntPoly::from(vec![5, 7, -4, 7, -4]));
+    let res: Vec<_> = a.chunk_by(|x, y| *y == x + Integer::from(1)).collect();
+    println!("{:?}", res);
 
-    // let result: IntPoly = polys.iter().sum();
-    // println!("{:?}", result);
-    // assert_eq!(result, IntPoly::from(vec![3, 4]));
+    println!("{:?}", a.is_sorted());
+
+
+    let p1 = IntPoly::from([5, 1, -10, -1, 2, 1, -3]);
+    let v: Vec<_> = p1.iter().rev().map(|x| x.clone()).collect();
+    let mut p2 = IntPoly::from(v);
+
+    let p3 = stalagmite_poly::intpoly::arithmetic::mul_ks::mul_ks(&p1, &p2);
+    p2 *= &p1;
+    println!("{:}", p1);
+    println!("{:}", p2);
+    println!("{:}", p3);
 }
