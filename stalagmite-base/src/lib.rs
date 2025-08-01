@@ -19,3 +19,24 @@ pub mod traits;
 pub mod integer;
 pub mod natural;
 pub mod rational;
+
+use malachite::Natural;
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StalagmiteError {
+    DivisionByZero,
+    InvalidModulus(Natural),
+}
+
+impl fmt::Display for StalagmiteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            StalagmiteError::DivisionByZero => write!(f, "Division by zero"),
+            StalagmiteError::InvalidModulus(modulus) => write!(f, "Invalid modulus: {}", modulus),
+        }
+    }
+}
+
+impl Error for StalagmiteError {}
