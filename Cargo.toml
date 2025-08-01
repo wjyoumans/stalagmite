@@ -1,3 +1,3 @@
 [workspace]
 resolver = "3"
-members = ["stalagmite", "stalagmite-base", "stalagmite-bench", "stalagmite-poly"]
+members = ["stalagmite", "stalagmite-base", "stalagmite-bench", "stalagmite-fq", "stalagmite-mat", "stalagmite-nf", "stalagmite-poly", "stalagmite-qp", "stalagmite-zn"]
