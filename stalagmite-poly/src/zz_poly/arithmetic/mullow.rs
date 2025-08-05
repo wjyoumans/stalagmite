@@ -194,7 +194,7 @@ pub fn auto_mullow(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: usiz
 /// 
 /// // Compare with full multiplication truncated
 /// let full_result = &poly1 * &poly2;
-/// let expected = ZZPoly::from_raw(full_result.coeffs[0..3].to_vec());
+/// let expected = ZZPoly::from_raw(full_result[0..3].to_vec());
 /// assert_eq!(result, expected);
 /// 
 /// // Truncated multiplication with zero polynomial
@@ -208,7 +208,7 @@ pub fn auto_mullow(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: usiz
 /// let result = mullow(&small1, &small2, 10);
 /// // Should be same as full multiplication, padded with zeros if needed
 /// let full = &small1 * &small2;
-/// assert_eq!(result.coeffs[0..full.length()], full.coeffs);
+/// assert_eq!(result[0..full.length()], full[..]);
 /// ```
 pub fn mullow(poly1: &ZZPoly, poly2: &ZZPoly, n: usize) -> ZZPoly {
     if n == 0 {
@@ -241,7 +241,7 @@ pub fn mullow(poly1: &ZZPoly, poly2: &ZZPoly, n: usize) -> ZZPoly {
 /// // Compare with full squaring truncated
 /// use stalagmite_poly::zz_poly::arithmetic::sqr::sqr;
 /// let full_sqr = sqr(&poly);
-/// let expected = ZZPoly::from_raw(full_sqr.coeffs[0..4].to_vec());
+/// let expected = ZZPoly::from_raw(full_sqr[0..4].to_vec());
 /// assert_eq!(result, expected);
 /// ```
 pub fn sqrlow(poly: &ZZPoly, n: usize) -> ZZPoly {

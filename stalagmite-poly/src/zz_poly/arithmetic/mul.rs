@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use malachite::Integer;
+use malachite::{Natural, Integer};
 use crate::zz_poly::ZZPoly;
 use std::ops::{
     Mul,
@@ -617,3 +617,70 @@ impl MulAssign<&Integer> for ZZPoly {
         }
     }
 }
+
+macro_rules! impl_mul_into_integer {
+    ($($t:ty),*) => {
+        $(
+            impl Mul<$t> for ZZPoly {
+                type Output = ZZPoly;
+                fn mul(self, rhs: $t) -> ZZPoly {
+                    self * Integer::from(rhs)
+                }
+            }
+            impl Mul<&$t> for ZZPoly {
+                type Output = ZZPoly;
+                fn mul(self, rhs: &$t) -> ZZPoly {
+                    self * Integer::from(rhs)
+                }
+            }
+            impl Mul<$t> for &ZZPoly {
+                type Output = ZZPoly;
+                fn mul(self, rhs: $t) -> ZZPoly {
+                    self * Integer::from(rhs)
+                }
+            }
+            impl Mul<&$t> for &ZZPoly { 
+                type Output = ZZPoly;
+                fn mul(self, rhs: &$t) -> ZZPoly {
+                    self * Integer::from(rhs)
+                }
+            }
+            impl Mul<ZZPoly> for $t {
+                type Output = ZZPoly;
+                fn mul(self, rhs: ZZPoly) -> ZZPoly {
+                    Integer::from(self) * rhs
+                }
+            }
+            impl Mul<&ZZPoly> for $t {
+                type Output = ZZPoly;
+                fn mul(self, rhs: &ZZPoly) -> ZZPoly {
+                    Integer::from(self) * rhs
+                }
+            }
+            impl Mul<ZZPoly> for &$t {
+                type Output = ZZPoly;
+                fn mul(self, rhs: ZZPoly) -> ZZPoly {
+                    Integer::from(self) * rhs
+                }
+            }
+            impl Mul<&ZZPoly> for &$t { 
+                type Output = ZZPoly;
+                fn mul(self, rhs: &ZZPoly) -> ZZPoly {
+                    Integer::from(self) * rhs
+                }
+            }
+            impl MulAssign<$t> for ZZPoly {     
+                fn mul_assign(&mut self, rhs: $t) {
+                    *self *= Integer::from(rhs);
+                }
+            }
+            impl MulAssign<&$t> for ZZPoly {
+                fn mul_assign(&mut self, rhs: &$t) {    
+                    *self *= Integer::from(rhs);
+                }
+            }
+        )*
+    }
+}
+
+impl_mul_into_integer!(Natural);

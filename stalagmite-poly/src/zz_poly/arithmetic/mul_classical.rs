@@ -61,7 +61,7 @@ fn dot_product(a: &[Integer], b: &[Integer], stride: usize, len: usize) -> Integ
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::ZZPoly::arithmetic::mul_classical::classical_mul;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_classical::classical_mul;
 /// use malachite::Integer;
 /// 
 /// let poly1 = vec![Integer::from(1), Integer::from(2), Integer::from(3)]; // 1 + 2x + 3x²
@@ -129,8 +129,8 @@ pub fn classical_mul(poly1: &[Integer], len1: usize, poly2: &[Integer], len2: us
 /// # Examples
 /// 
 /// ```
-/// use stalagmite_poly::ZZPoly::ZZPoly;
-/// use stalagmite_poly::ZZPoly::arithmetic::mul_classical::mul_classical;
+/// use stalagmite_poly::zz_poly::ZZPoly;
+/// use stalagmite_poly::zz_poly::arithmetic::mul_classical::mul_classical;
 /// 
 /// let poly1 = ZZPoly::from(vec![1, 2, 3]); // 1 + 2x + 3x²
 /// let poly2 = ZZPoly::from(vec![4, 5]);    // 4 + 5x
