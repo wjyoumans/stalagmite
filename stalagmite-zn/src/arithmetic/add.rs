@@ -40,6 +40,7 @@ impl Add for ZnElem {
     fn add(self, rhs: ZnElem) -> ZnElem {
         // Check that both elements have the same modulus
         check_moduli!(self, rhs);
+        //assert!(self.context() == rhs.context();)
         
         let sum = &self.value + &rhs.value;
         let reduced = sum % &self.ctx.modulus;

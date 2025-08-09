@@ -30,6 +30,7 @@ pub(crate) struct IntegerModContext {
 }
 
 impl PartialEq for IntegerModContext {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.modulus == other.modulus
     }
@@ -48,6 +49,15 @@ pub struct IntegerMod {
     ctx: Rc<IntegerModContext>
 }
 
+/*
+pub enum ZnElem {
+    Standard(Natural, Rc<IntegerModContext>),
+    PowerOf2(Natural),
+    Montgomery,
+    ShoupMultiplier,
+}
+*/
+
 // Shortcuts
 pub(crate) type ZnContext = IntegerModContext;
 pub type ZnRing = IntegerModRing;
@@ -55,12 +65,14 @@ pub type ZnElem = IntegerMod;
 
 
 impl std::fmt::Display for ZnRing {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Zn({})", self.modulus())
     }
 }
 
 impl std::fmt::Display for ZnElem {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
     }
@@ -72,32 +84,44 @@ impl ZnContext {
         Self { modulus, mod_mul_data }
     }
 
+    #[inline]
     pub fn mod_mul_data(&self) -> &ModMulData {
         &self.mod_mul_data
     }
 
+    #[inline]
     pub fn modulus(&self) -> &Natural {
         &self.modulus
     }
 }
 
 impl ZnRing {
+    #[inline]
     pub fn init(modulus: Natural) -> Self {
         Self { ctx: Rc::new(IntegerModContext::new(modulus)) }
     }
 
+    #[inline]
     pub fn new(&self, value: Natural) -> ZnElem {
         ZnElem::from_ctx(value, self.ctx.clone())
     }
 
+    #[inline]
     pub(crate) fn from_ctx(ctx: Rc<IntegerModContext>) -> Self {
         Self { ctx }
     }
 
+    #[inline]
+    pub fn context(&self) -> &ZnContext {
+        &self.ctx
+    }
+
+    #[inline]
     pub fn modulus(&self) -> &Natural {
         self.ctx.modulus()
     }
 
+    #[inline]
     pub fn mod_mul_data(&self) -> &ModMulData {
         self.ctx.mod_mul_data()
     }
@@ -113,34 +137,47 @@ impl ZnRing {
 }
 
 impl ZnElem {
+    #[inline]
     pub fn new(value: Natural, modulus: Natural) -> Self {
         Self { value, ctx: Rc::new(IntegerModContext::new(modulus)) }
     }
 
+    #[inline]
     pub(crate) fn from_ctx(value: Natural, ctx: Rc<IntegerModContext>) -> Self {
         Self { value, ctx }
     }
 
+    #[inline]
+    pub fn context(&self) -> &ZnContext {
+        &self.ctx
+    }
+
+    #[inline]
     pub fn value(&self) -> &Natural {
         &self.value
     }
 
+    #[inline]
     pub fn as_natural(&self) -> &Natural {
         &self.value
     }
 
+    #[inline]
     pub fn to_natural(self) -> Natural {
         self.value
     }
 
+    #[inline]
     pub fn into_natural(&self) -> Natural {
         self.value.clone()
     }
 
+    #[inline]
     pub fn modulus(&self) -> &Natural {
         self.ctx.modulus()
     }
 
+    #[inline]
     pub fn mod_mul_data(&self) -> &ModMulData {
         self.ctx.mod_mul_data()
     }
@@ -152,6 +189,7 @@ impl Parent for ZnRing {
 
 impl Element for ZnElem {
     type Parent = ZnRing;
+    #[inline]
     fn parent(&self) -> Self::Parent {
         ZnRing::from_ctx(self.ctx.clone())  
     }

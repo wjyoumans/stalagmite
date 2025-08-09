@@ -17,7 +17,7 @@
 
 use std::ops::{Mul, MulAssign};
 use std::rc::Rc;
-use crate::{ZnElem, check_moduli};
+use crate::{ZnElem, IntegerMod};
 use malachite::base::num::arithmetic::traits::{ModMulPrecomputed, ModMulPrecomputedAssign};
 use stalagmite_base::traits::Element;
 
@@ -40,13 +40,10 @@ use stalagmite_base::traits::Element;
 impl Mul for ZnElem {
     type Output = ZnElem;
     
-    fn mul(self, rhs: ZnElem) -> ZnElem {
-        assert!(self.parent() == rhs.parent());
-
-        let ctx = Rc::clone(&self.ctx);
-        let res = self.value.mod_mul_precomputed(rhs.value, ctx.modulus(), ctx.mod_mul_data());
-
-        ZnElem::from_ctx(res, ctx)
+    #[inline]    
+    fn mul(mut self, rhs: ZnElem) -> ZnElem {
+        self *= rhs;
+        self
     }
 }
 
@@ -54,27 +51,21 @@ impl Mul for ZnElem {
 impl Mul<&ZnElem> for ZnElem {
     type Output = ZnElem;
     
-    fn mul(self, rhs: &ZnElem) -> ZnElem {
-        assert!(self.parent() == rhs.parent());
-
-        let ctx = Rc::clone(&self.ctx);
-        let res = self.value.mod_mul_precomputed(&rhs.value, ctx.modulus(), ctx.mod_mul_data());
-
-        ZnElem::from_ctx(res, ctx)
+    #[inline]    
+    fn mul(mut self, rhs: &ZnElem) -> ZnElem {
+        self *= rhs;
+        self
     }
 }
 
 /// Multiply a reference to this integer modulo n by another one.
 impl Mul<ZnElem> for &ZnElem {
     type Output = ZnElem;
-    
-    fn mul(self, rhs: ZnElem) -> ZnElem {
-        assert!(self.parent() == rhs.parent());
 
-        let ctx = Rc::clone(&self.ctx);
-        let res = (&self.value).mod_mul_precomputed(rhs.value, ctx.modulus(), ctx.mod_mul_data());
-
-        ZnElem::from_ctx(res, ctx)
+    #[inline]    
+    fn mul(self, mut rhs: ZnElem) -> ZnElem {
+        rhs *= self;
+        rhs
     }
 }
 
@@ -83,11 +74,10 @@ impl Mul<&ZnElem> for &ZnElem {
     type Output = ZnElem;
     
     fn mul(self, rhs: &ZnElem) -> ZnElem {
-        assert!(self.parent() == rhs.parent());
-
+        check_moduli!(self, rhs);
         let ctx = Rc::clone(&self.ctx);
-        let res = (&self.value).mod_mul_precomputed(&rhs.value, ctx.modulus(), ctx.mod_mul_data());
 
+        let res = (&self.value).mod_mul_precomputed(&rhs.value, ctx.modulus(), ctx.mod_mul_data());
         ZnElem::from_ctx(res, ctx)
     }
 }
@@ -95,18 +85,16 @@ impl Mul<&ZnElem> for &ZnElem {
 /// Multiply this integer modulo n by another one, modifying this element in place.
 impl MulAssign for ZnElem {
     fn mul_assign(&mut self, rhs: ZnElem) {
-        assert!(self.parent() == rhs.parent());
-
-        let ctx = Rc::clone(&self.ctx);
-        self.value.mod_mul_precomputed_assign(rhs.value, ctx.modulus(), ctx.mod_mul_data());
+        check_moduli!(self, rhs);
+        let IntegerMod { value: rhs_value, ctx: rhs_ctx } = rhs;
+        self.value.mod_mul_precomputed_assign(rhs_value, rhs_ctx.modulus(), rhs_ctx.mod_mul_data());
     }
 }
 
 /// Multiply this integer modulo n by a reference to another one.
 impl MulAssign<&ZnElem> for ZnElem {
     fn mul_assign(&mut self, rhs: &ZnElem) {
-        assert!(self.parent() == rhs.parent());
-
+        check_moduli!(self, rhs);
         let ctx = Rc::clone(&self.ctx);
         self.value.mod_mul_precomputed_assign(&rhs.value, ctx.modulus(), ctx.mod_mul_data());
     }
