@@ -1,4 +1,9 @@
 use malachite::Natural;
+use malachite::base::num::arithmetic::traits::ModMulPrecomputed;
+use malachite::natural::arithmetic::mod_mul::ModMulData;
+use malachite::natural::random::get_random_natural_less_than;
+use malachite::base::num::random::{RandomPrimitiveInts, HasRandomPrimitiveInts};
+
 use std::rc::Rc;
 
 use stalagmite_base::traits::{
@@ -18,10 +23,19 @@ macro_rules! check_moduli {
     };
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash)]
 pub(crate) struct IntegerModContext {
-    modulus: Natural
-} 
+    modulus: Natural,
+    mod_mul_data: ModMulData,
+}
+
+impl PartialEq for IntegerModContext {
+    fn eq(&self, other: &Self) -> bool {
+        self.modulus == other.modulus
+    }
+}
+
+impl Eq for IntegerModContext {}
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct IntegerModRing {
@@ -54,7 +68,16 @@ impl std::fmt::Display for ZnElem {
 
 impl ZnContext {
     pub fn new(modulus: Natural) -> Self {
-        Self { modulus }
+        let mod_mul_data = ModMulPrecomputed::<Natural>::precompute_mod_mul_data(&modulus);
+        Self { modulus, mod_mul_data }
+    }
+
+    pub fn mod_mul_data(&self) -> &ModMulData {
+        &self.mod_mul_data
+    }
+
+    pub fn modulus(&self) -> &Natural {
+        &self.modulus
     }
 }
 
@@ -71,8 +94,21 @@ impl ZnRing {
         Self { ctx }
     }
 
-    pub fn modulus(&self) -> Natural {
-        self.ctx.modulus.clone()
+    pub fn modulus(&self) -> &Natural {
+        self.ctx.modulus()
+    }
+
+    pub fn mod_mul_data(&self) -> &ModMulData {
+        self.ctx.mod_mul_data()
+    }
+
+    pub fn random_element(&self, rng: &mut RandomPrimitiveInts<u64>) -> ZnElem {
+        let value = get_random_natural_less_than(rng, self.modulus());
+        self.new(value)
+    }
+    
+    pub fn random_elements(&self, rng: &mut RandomPrimitiveInts<u64>, count: usize) -> Vec<ZnElem> {
+        (0..count).map(|_| self.random_element(rng)).collect()
     }
 }
 
@@ -85,12 +121,28 @@ impl ZnElem {
         Self { value, ctx }
     }
 
-    pub fn modulus(&self) -> Natural {
-        self.ctx.modulus.clone()
+    pub fn value(&self) -> &Natural {
+        &self.value
     }
 
-    pub fn value(&self) -> Natural {
+    pub fn as_natural(&self) -> &Natural {
+        &self.value
+    }
+
+    pub fn to_natural(self) -> Natural {
+        self.value
+    }
+
+    pub fn into_natural(&self) -> Natural {
         self.value.clone()
+    }
+
+    pub fn modulus(&self) -> &Natural {
+        self.ctx.modulus()
+    }
+
+    pub fn mod_mul_data(&self) -> &ModMulData {
+        self.ctx.mod_mul_data()
     }
 }
 

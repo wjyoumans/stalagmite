@@ -6,8 +6,9 @@ edition = "2021"
 [dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
 stalagmite-poly = { path = "../stalagmite-poly" }
-malachite = "0.6.1"
+malachite = { version = "0.6.1", features = ["random"] }
 rand = { version = "0.9", features = ["small_rng"] }
+stalagmite-zn = { path = "../stalagmite-zn" }
 
 
 [[bench]]
@@ -31,16 +32,11 @@ path = "benches/poly/zz_poly/mul.rs"
 harness = false
 
 [[bench]]
-name = "zz_poly_sqr"
-path = "benches/poly/zz_poly/sqr.rs"
-harness = false
-
-[[bench]]
-name = "zz_poly_mullow"
-path = "benches/poly/zz_poly/mullow.rs"
-harness = false
-
-[[bench]]
 name = "zz_poly_rem"
 path = "benches/poly/zz_poly/rem.rs"
+harness = false
+
+[[bench]]
+name = "zn_mul"
+path = "benches/zn/mul.rs"
 harness = false
