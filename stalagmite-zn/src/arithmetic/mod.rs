@@ -19,3 +19,4 @@ pub mod add;
 pub mod sub;
 pub mod neg;
 pub mod mul;
+pub mod inv;
