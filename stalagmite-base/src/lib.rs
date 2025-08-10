@@ -20,6 +20,8 @@ pub mod integer;
 pub mod natural;
 pub mod rational;
 
+pub mod factor;
+
 use malachite::Natural;
 use std::error::Error;
 use std::fmt;
