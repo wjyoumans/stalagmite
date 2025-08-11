@@ -1,10 +1,13 @@
 
-use malachite::base::num::arithmetic::traits::{Parity, DivisibleBy};
+use malachite::base::num::arithmetic::traits::*;
+use malachite::base::num::basic::traits::*;
 use crate::factor::*;
 use crate::factor::prime_cache::{
     PRIME_CACHE,
     ensure_primes_computed,
+    get_primes_using_cache
 };
+use std::cmp::{min, max};
 
 /// Rust translation of flint_mpn_factor_trial
 /// Returns the index of the first prime that divides x, or None if no factor found
@@ -59,16 +62,15 @@ pub fn factor_trial(
     None // No factors found in the range
 }
 
-
 // TESTING //
 
 /// Factors a ZZElem using trial division within a specified prime range.
-/// Returns true if the number is completely factored, false if there's a remaining composite factor.
+/// Returns the (potentially partial) factorization and remaining cofactor.
 pub fn factor_trial_range(
-    n: &ZZElem,
+    mut n: ZZElem,
     start: usize,
     num_primes: usize
-) -> FactoredZZ {
+) -> (FactoredZZ, ZZElem) {
     /* TODO: Check if n is word-size, use existing code
     if n.is_small() {
         factor_small_integer(factor, n.to_i64().unwrap());
@@ -76,37 +78,31 @@ pub fn factor_trial_range(
     }
     */
 
-    let factors = FactoredZZ::new();
+    let mut factors = FactoredZZ::new();
 
-    /*
-    // Create a mutable copy of the limbs
-    let mut limbs = n.limbs().to_vec();
-    let mut limb_count = limbs.len();
-    */
-    
-    // Handle sign
-    factor.sign = if n.is_negative() {
-        limbs = n.abs().limbs().to_vec();
-        limb_count = limbs.len();
-        -1
-    } else {
-        1
-    };
+    // handle sign
+    if n < 0 {
+        factors.insert(ZZElem::from(-1), 1);
+        n.neg_assign();
+    }
 
-    /*
-    // Factor out powers of two if starting from the beginning
+    // factor out powers of two
     if start == 0 {
-        let exp = remove_powers_of_two(&mut limbs, &mut limb_count);
-        if exp != 0 {
-            factor.append(2, exp);
+        if let Some(exp) = n.trailing_zeros() {
+            if exp != 0 {
+                factors.insert(ZZElem::TWO, exp as u32);
+                n >>= exp;
+            }
         }
     }
-    */
+
+
+/*    
 
     // Get read-only access to prime cache
     let prime_cache = PRIME_CACHE.read().unwrap();
 
-    let trial_start = std::cmp::max(1, start);
+    let trial_start = max(1, start);
     let mut current_start = trial_start;
     let end_range = start + num_primes;
 
@@ -162,8 +158,11 @@ pub fn factor_trial_range(
 
     // Return true if completely factored (remainder is 1)
     limb_count == 1 && limbs[0] == 1
+    */
+    (factors, n)
 }
 
+/*
 /// Helper function to remove powers of 2 from the limbs
 fn remove_powers_of_two(limbs: &mut Vec<u64>, limb_count: &mut usize) -> usize {
     if *limb_count == 0 {
@@ -272,3 +271,204 @@ fn factor_small_integer(factor: &mut FactoredZZ, n: i64) {
     // This is a placeholder - you'll need to implement based on your actual types
     unimplemented!()
 }
+*/
+
+use std::sync::{OnceLock, RwLock};
+use malachite::Natural;
+
+const FLINT_BITS: usize = malachite::platform::Limb::BITS as usize;
+const FACTOR_TREE_LEVELS: usize = 13 - (FLINT_BITS / 32);
+const FACTOR_TREE_ENTRIES_PER_LEVEL: usize = 4096 / (FLINT_BITS / 16);
+
+#[derive(Debug)]
+pub struct FactorTrialTree {
+    pub tree: Vec<Vec<Natural>>,
+    initialized: bool,
+}
+
+struct FactorTrialTreeArr<const N: usize, const L: usize> {
+    tree: [[u64; N]; L],
+    initialized: bool,
+}
+
+struct FactorTrialTree3 {
+    tree: [[u64; FACTOR_TREE_ENTRIES_PER_LEVEL]; FACTOR_TREE_LEVELS],
+    initialized: bool,
+}
+
+impl FactorTrialTree {
+    const LEVELS: usize = 13 - (FLINT_BITS / 32);
+    const ENTRIES_PER_LEVEL: usize = 4096 / (FLINT_BITS / 16);
+    
+    pub fn new() -> Self {
+        Self {
+            tree: Vec::new(),
+            initialized: false,
+        }
+    }
+
+    pub fn initialize(&mut self) {
+        if self.initialized {
+            return;
+        }
+
+        let levels = 13 - (FLINT_BITS / 32);
+        self.tree = vec![Vec::new(); levels];
+
+        // Calculate size for each level
+        let entries_per_level = 4096 / (FLINT_BITS / 16);
+        
+        // Initialize all levels with appropriate capacity
+        for i in 0..levels {
+            self.tree[i] = vec![Natural::ZERO; entries_per_level];
+        }
+
+        ensure_primes_computed(3512);
+        self.build_first_layer();
+        self.build_remaining_layers();
+        
+        self.initialized = true;
+    }
+
+    fn build_first_layer(&mut self) {
+        let mut j = 0;
+        let step = FLINT_BITS / 16;
+        let cache = PRIME_CACHE.read().unwrap();
+        
+        for i in (0..3512).step_by(step) {
+            if FLINT_BITS == 64 {
+                self.tree[0][j] = Natural::from(cache[i]*cache[i+1]*cache[i+2]*cache[i+3]);
+            } else {
+                self.tree[0][j] = Natural::from(cache[i]*cache[i+1]);
+            }
+            j += 1;
+        }
+    }
+
+    fn build_remaining_layers(&mut self) {
+        let max_levels = 12 - (FLINT_BITS / 32);
+        let mut entries_count = 3512 / (FLINT_BITS / 16);
+
+        for level in 0..max_levels {
+            // Multiply adjacent entries in pairs
+            let mut output_idx = 0;
+            let mut input_idx = 0;
+
+            // If implemented in malachite, use malachite::natural::arithmetic::mul::limbs_mul_same_length_to_out?
+
+            while input_idx + 1 < entries_count {
+                let result = &self.tree[level][input_idx] * &self.tree[level][input_idx + 1];
+                                
+                if level + 1 < self.tree.len() && output_idx < self.tree[level + 1].len() {
+                    self.tree[level + 1][output_idx] = result;
+                }
+                
+                input_idx += 2;
+                output_idx += 1;
+            }
+
+            // Handle odd entries
+            if entries_count % 2 == 1 && level + 1 < self.tree.len() {
+                let last_idx = entries_count - 1;
+                if last_idx < self.tree[level].len() && output_idx < self.tree[level + 1].len() {
+                    self.tree[level + 1][output_idx] = self.tree[level][last_idx].clone();
+                }
+            }
+
+            entries_count = (entries_count + 1) / 2;
+        }
+    }
+
+
+    fn get_entry(&self, level: usize, index: usize) -> Option<&Natural> {
+        self.tree.get(level)?.get(index)
+    }
+
+    fn get_num_levels(&self) -> usize {
+        self.tree.len()
+    }
+    
+    fn get_level_size(&self, level: usize) -> usize {
+        self.tree.get(level).map(|v| v.len()).unwrap_or(0)
+    }
+}
+
+static TRIAL_TREE: OnceLock<RwLock<FactorTrialTree>> = OnceLock::new();
+
+fn get_trial_tree() -> &'static RwLock<FactorTrialTree> {
+    TRIAL_TREE.get_or_init(|| {
+        let mut tree = FactorTrialTree::new();
+        tree.initialize();
+        RwLock::new(tree)
+    })
+}
+
+
+// Alternative implementation if you prefer a more functional style
+pub fn factor_trial_tree(x: Natural, num_primes: usize) -> Option<Vec<usize>> {
+    if x <= 1 {
+        return if x == 1 { Some(vec![]) } else { None };
+    }
+    
+    let tree = get_trial_tree().read().unwrap();
+    let cache = PRIME_CACHE.read().unwrap();
+    
+    let m = max(bit_count(num_primes).saturating_sub(FLINT_BITS / 32), 0);
+    
+    let entries_to_check = (num_primes + (FLINT_BITS / 16) - 1) / (FLINT_BITS / 16);
+    let mut factors = Vec::new();
+    
+    for i in 0..entries_to_check {
+        if should_check_group(&x, &tree, i, m) {
+            // Check individual primes in this group
+            for j in 0..(FLINT_BITS / 16) {
+                let prime_idx = (FLINT_BITS / 16) * i + j;
+                
+                if prime_idx < cache.len() && prime_idx < num_primes {
+                    if (&x).divisible_by(Natural::from(cache[prime_idx])) {
+                        factors.push(prime_idx);
+                    }
+                }
+            }
+        }
+    }
+    
+    Some(factors)
+}
+
+fn should_check_group(x: &Natural, tree: &FactorTrialTree, group_idx: usize, max_level: usize) -> bool {
+    let mut current_gcd = x.clone();
+    
+    for level in (0..=max_level).rev() {
+        // FIXED: Proper bit extraction for tree navigation
+        let entry_idx = if level == max_level {
+            0  // Root is always at index 0
+        } else {
+            (group_idx >> level) & ((1 << (max_level - level)) - 1)
+        };
+        
+        if let Some(tree_entry) = tree.get_entry(level, entry_idx) {
+            current_gcd = current_gcd.gcd(tree_entry);
+            if current_gcd == 1 {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    
+    true
+}
+
+
+fn bit_count(n: usize) -> usize {
+    if n == 0 { 0 } else { 64 - (n.leading_zeros() as usize) }
+}
+
+// fn bit_count(n: usize) -> usize {
+//     if n == 0 {
+//         0
+//     } else {
+//         (n.floor_log_base_2() + 1) as usize
+//     }
+// }

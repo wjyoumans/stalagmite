@@ -6,12 +6,13 @@ use std::collections::{
 };
 //use std::cmp::Eq;
 use std::hash::Hash;
+use std::mem::swap;
 use std::ops::{Deref, DerefMut, Mul};
 use malachite::base::num::basic::integers::PrimitiveInt;
 use malachite::base::num::basic::traits::One;
 
 pub mod prime_cache;
-//pub mod trial_div;
+pub mod trial_div;
 
 #[cfg(test)]
 mod tests;
@@ -21,21 +22,8 @@ pub struct FactoredElem<T, E: PrimitiveInt> {
     pub factors: HashMap<T, E>
 }
 
-impl<T, E: PrimitiveInt> Deref for FactoredElem<T, E> {
-    type Target = HashMap<T, E>;
-    fn deref(&self) -> &Self::Target {
-        &self.factors
-    }
-}
-
-impl<T, E: PrimitiveInt> DerefMut for FactoredElem<T, E> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.factors
-    }
-}
-
 impl<T, E> FactoredElem<T, E> where
-    T: Eq + Hash,
+    T: One + Eq + Hash,
     E: PrimitiveInt
 {
     /// Creates an empty FactoredElem.
@@ -50,6 +38,23 @@ impl<T, E> FactoredElem<T, E> where
         FactoredElem { 
             factors: HashMap::with_capacity(capacity) 
         }
+    }
+
+    pub fn eval_with<F: FnMut(T, T, E) -> T>(self, mut eval_fn: F) -> T {
+        self.factors.into_iter().fold(T::ONE, |acc, (fac, exp)| eval_fn(acc, fac, exp))
+    }
+}
+
+impl<T, E: PrimitiveInt> Deref for FactoredElem<T, E> {
+    type Target = HashMap<T, E>;
+    fn deref(&self) -> &Self::Target {
+        &self.factors
+    }
+}
+
+impl<T, E: PrimitiveInt> DerefMut for FactoredElem<T, E> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.factors
     }
 }
 
@@ -113,14 +118,20 @@ impl<T, E> Mul for FactoredElem<T, E> where
     E: PrimitiveInt
 {
     type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
+    fn mul(mut self, mut rhs: Self) -> Self {
+        if self.len() < rhs.len() {
+            swap(&mut self, &mut rhs);
+        }
         let mut factors = self.factors;
-        let rhs_factors = rhs.factors;
+        let other_factors = rhs.factors;
         
-        for (fac, exp) in rhs_factors {
+        for (fac, exp) in other_factors {
             match factors.entry(fac) {
                 Entry::Occupied(mut entry) => {
                     *entry.get_mut() += exp;
+                    if *entry.get() == E::ZERO {
+                        let _ = entry.remove_entry();
+                    }
                 }
                 Entry::Vacant(entry) => {
                     entry.insert(exp);
@@ -131,8 +142,8 @@ impl<T, E> Mul for FactoredElem<T, E> where
     }
 }
 
-type FactoredZZ = FactoredElem<ZZElem, u32>;
-type FactoredQQ = FactoredElem<QQElem, i32>;
+pub type FactoredZZ = FactoredElem<ZZElem, u32>;
+pub type FactoredQQ = FactoredElem<QQElem, i32>;
 
 // Redefine malachite::base::num::factorization::traits::Factor
 pub trait Factor {
@@ -150,25 +161,42 @@ impl Factor for ZZElem {
     }
 }
 
+pub trait Eval {
+    type Output;
+    fn eval(self) -> Self::Output;
+}
 
+use malachite::base::num::arithmetic::traits::*;
+
+impl Eval for FactoredZZ {
+    type Output = ZZElem;
+    fn eval(self) -> Self::Output {        
+        self.factors.into_iter().fold(ZZElem::ONE, |acc, (fac, exp)| acc * fac.pow(exp as u64))
+    }
+}
+
+impl Eval for FactoredQQ {
+    type Output = QQElem;
+    fn eval(self) -> Self::Output {        
+        //self.factors.into_iter().fold(T::ONE, |acc, (fac, exp)| eval_fn(acc, fac, exp))
+        QQElem::ONE
+    }
+}
+
+
+/*
 fn factor_trial_range() {}
-
 fn factor_trial() {}
-
 fn factor_no_trial() {}
 
 fn factor() {}
-
 fn factor_smooth() {}
 
 fn factor_pp1() {}
-
 fn factor_refine() {}
 
 fn factor_pollard_brent_single() {}
-
 fn factor_pollard_brent() {}
-
 
 fn factor_ecm_double() {}
 fn factor_ecm_add() {}
@@ -177,3 +205,5 @@ fn factor_ecm_select_curve() {}
 fn factor_ecm_stage_1() {}
 fn factor_ecm_stage_2() {}
 fn factor_ecm() {}
+
+*/

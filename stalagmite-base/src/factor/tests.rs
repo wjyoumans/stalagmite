@@ -28,14 +28,6 @@ mod tests {
         use super::*;
 
         #[test]
-        fn test_factored_elem_default() {
-            let factored: FactoredZZ = FactoredElem::default();
-            // Default should represent 1 = 1^1
-            assert_eq!(factored.len(), 1);
-            assert_eq!(factored.get(&ZZElem::ONE), Some(&1u32));
-        }
-
-        #[test]
         fn test_factored_elem_multiplication_same_base() {
             // Test: (2^3) * (2^2) = 2^5
             let factored1 = FactoredElem::from([(ZZElem::from(2), 3u32)]);

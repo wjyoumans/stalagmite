@@ -56,15 +56,17 @@ pub fn is_prime_using_cache(n: u64, cache: &[u64]) -> bool {
 }
 
 /// Get the nth prime (0-indexed), extending cache if necessary
-pub fn get_nth_prime(n: usize) -> u64 {
+pub fn get_nth_prime_using_cache(n: usize) -> u64 {
     ensure_primes_computed(n + 1);
     let cache = PRIME_CACHE.read().unwrap();
     cache[n]
 }
 
 /// Get a slice of primes from the cache, extending if necessary
-pub fn get_primes_slice(up_to_index: usize) -> Vec<u64> {
-    ensure_primes_computed(up_to_index);
+pub fn get_primes_using_cache<const N: usize>(start: usize, num_primes: usize) -> [u64; N] {
+    let stop = start + num_primes;
+    ensure_primes_computed(stop);
     let cache = PRIME_CACHE.read().unwrap();
-    cache[..up_to_index].to_vec()
+    let res: [u64; N] = cache[start..stop].try_into().unwrap();
+    res
 }
