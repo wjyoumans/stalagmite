@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod traits;
 pub mod integer;
 pub mod natural;
 pub mod rational;
+pub mod traits;
 
-pub mod factored;
 pub mod factor;
+pub mod factored;
 
 use malachite::Natural;
 use std::error::Error;

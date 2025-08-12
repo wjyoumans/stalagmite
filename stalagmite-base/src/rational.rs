@@ -15,11 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::traits::{Element, Parent};
 pub use malachite::rational::Rational;
-use crate::traits::{
-    Parent,
-    Element
-};
 
 pub struct RationalField;
 

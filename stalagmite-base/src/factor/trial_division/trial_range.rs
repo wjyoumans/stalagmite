@@ -1,16 +1,14 @@
-
+use crate::factor::FactoredZZElem;
+use crate::integer::ZZElem;
 use malachite::base::num::arithmetic::traits::NegAssign;
 use malachite::base::num::basic::traits::Two;
-use crate::integer::ZZElem;
-use crate::factor::FactoredZZElem;
-
 
 /// Factors a ZZElem using trial division within a specified prime range.
 /// Returns the (potentially partial) factorization and remaining cofactor.
 pub fn factor_trial_range(
     mut n: ZZElem,
     start: usize,
-    num_primes: usize
+    num_primes: usize,
 ) -> (FactoredZZElem, ZZElem) {
     /* TODO: Check if n is word-size, use existing code
     if n.is_small() {
@@ -37,8 +35,7 @@ pub fn factor_trial_range(
         }
     }
 
-
-/*    
+    /*
 
     // Get read-only access to prime cache
     let prime_cache = get_prime_cache().read().unwrap();
@@ -49,7 +46,7 @@ pub fn factor_trial_range(
 
     loop {
         let trial_stop = std::cmp::min(current_start + 1000, end_range);
-        
+
         if current_start >= trial_stop {
             break;
         }
@@ -90,7 +87,7 @@ pub fn factor_trial_range(
         if limb_count == 1 && limbs[0] == 1 {
             break;
         }
-        
+
         // Break if we've exhausted our range
         if current_start >= end_range {
             break;

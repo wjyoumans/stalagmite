@@ -33,10 +33,9 @@ pub trait RingElement: Element {
 pub trait Field: Ring {
     type Element: FieldElement;
 }
-pub trait FieldElement: RingElement{
+pub trait FieldElement: RingElement {
     type Parent: Field;
 }
-
 
 pub trait PolynomialRing<R: Ring> {}
 pub trait Polynomial<R: Ring> {}

@@ -15,13 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::traits::{Element, Parent, Ring, RingElement};
 pub use malachite::Integer;
-use crate::traits::{
-    Parent,
-    Element,
-    Ring,
-    RingElement
-};
 
 pub struct IntegerRing;
 
@@ -46,4 +41,3 @@ impl Element for ZZElem {
 impl RingElement for ZZElem {
     type Parent = ZZRing;
 }
-

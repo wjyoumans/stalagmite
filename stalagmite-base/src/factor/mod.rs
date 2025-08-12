@@ -1,9 +1,8 @@
-
-use crate::integer::ZZElem;
 use crate::factored::FactoredZZElem;
+use crate::integer::ZZElem;
 
-pub mod trial_division;
 pub mod prime_cache;
+pub mod trial_division;
 
 // Redefine malachite::base::num::factorization::traits::Factor
 pub trait Factor {
@@ -19,8 +18,6 @@ impl Factor for ZZElem {
         FactoredZZElem::new()
     }
 }
-
-
 
 /*
 fn factor_trial_range() {}
