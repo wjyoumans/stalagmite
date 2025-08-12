@@ -1,13 +1,9 @@
-
-use malachite::base::num::arithmetic::traits::*;
-use malachite::base::num::basic::traits::*;
-use crate::factor::*;
+use malachite::base::num::arithmetic::traits::{DivisibleBy, Parity};
+use crate::integer::ZZElem;
 use crate::factor::prime_cache::{
     ensure_primes_computed,
     get_prime_cache
 };
-use std::cmp::{min, max};
-use malachite::Natural;
 
 
 /// Rust translation of flint_mpn_factor_trial

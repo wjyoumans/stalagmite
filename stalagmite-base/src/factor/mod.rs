@@ -1,7 +1,5 @@
 
 use crate::integer::ZZElem;
-use crate::rational::QQElem;
-
 use crate::factored::FactoredZZElem;
 
 pub mod trial_division;

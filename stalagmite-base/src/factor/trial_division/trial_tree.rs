@@ -1,6 +1,6 @@
 
-use malachite::base::num::arithmetic::traits::*;
-use malachite::base::num::basic::traits::*;
+use malachite::base::num::arithmetic::traits::{DivisibleBy, Gcd, FloorLogBase2};
+use malachite::base::num::basic::traits::Zero;
 
 use crate::LIMB_BITS;
 use crate::factor::prime_cache::{
@@ -8,7 +8,7 @@ use crate::factor::prime_cache::{
     get_prime_cache
 };
 
-use std::cmp::{min, max};
+use std::cmp::max;
 use std::sync::{OnceLock, RwLock};
 use malachite::Natural;
 

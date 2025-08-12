@@ -1,15 +1,8 @@
 
-use malachite::base::num::arithmetic::traits::*;
-use malachite::base::num::basic::traits::*;
-use crate::factor::*;
-use crate::factor::prime_cache::{
-    PRIME_CACHE,
-    ensure_primes_computed,
-    get_primes_using_cache
-};
-use std::cmp::{min, max};
-use std::sync::{OnceLock, RwLock};
-use malachite::Natural;
+use malachite::base::num::arithmetic::traits::NegAssign;
+use malachite::base::num::basic::traits::Two;
+use crate::integer::ZZElem;
+use crate::factor::FactoredZZElem;
 
 
 /// Factors a ZZElem using trial division within a specified prime range.

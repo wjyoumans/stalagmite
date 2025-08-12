@@ -18,11 +18,7 @@
 pub use malachite::rational::Rational;
 use crate::traits::{
     Parent,
-    Element,
-    Ring,
-    RingElement,
-    Field,
-    FieldElement
+    Element
 };
 
 pub struct RationalField;
