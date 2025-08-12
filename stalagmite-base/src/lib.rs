@@ -20,11 +20,14 @@ pub mod integer;
 pub mod natural;
 pub mod rational;
 
+pub mod factored;
 pub mod factor;
 
 use malachite::Natural;
 use std::error::Error;
 use std::fmt;
+
+pub const LIMB_BITS: usize = malachite::platform::Limb::BITS as usize;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StalagmiteError {

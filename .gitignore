@@ -1,6 +1,7 @@
 target
 *.lock
 
+examples
 criterion-reports
 stalagmite-poly/src/intpoly/arithmetic/mul_ss.rs
 CLAUDE.md
