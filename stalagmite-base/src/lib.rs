@@ -22,6 +22,7 @@ pub mod traits;
 
 pub mod factor;
 pub mod factored;
+pub mod is_prime;
 
 use malachite::Natural;
 use std::error::Error;

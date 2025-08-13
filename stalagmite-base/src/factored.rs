@@ -8,7 +8,7 @@ use malachite::base::num::basic::integers::PrimitiveInt;
 use malachite::base::num::basic::traits::One;
 use std::hash::Hash;
 use std::mem::swap;
-use std::ops::{Deref, DerefMut, Mul};
+use std::ops::{Deref, DerefMut, Mul, MulAssign};
 
 #[derive(Debug, Default, Clone)]
 pub struct FactoredElem<T, E: PrimitiveInt> {
@@ -104,15 +104,26 @@ where
     E: PrimitiveInt,
 {
     type Output = Self;
-    fn mul(mut self, mut rhs: Self) -> Self {
-        if self.len() < rhs.len() {
-            swap(&mut self, &mut rhs);
-        }
-        let mut factors = self.factors;
-        let other_factors = rhs.factors;
 
-        for (fac, exp) in other_factors {
-            match factors.entry(fac) {
+    #[inline]
+    fn mul(mut self, rhs: Self) -> Self {
+        self *= rhs;
+        self
+    }
+}
+
+impl<T, E> MulAssign for FactoredElem<T, E>
+where
+    T: Eq + Hash,
+    E: PrimitiveInt,
+{
+    fn mul_assign(&mut self, mut rhs: Self) {
+        if self.len() < rhs.len() {
+            swap(self, &mut rhs);
+        }
+
+        for (fac, exp) in rhs.factors {
+            match self.factors.entry(fac) {
                 Entry::Occupied(mut entry) => {
                     *entry.get_mut() += exp;
                     if *entry.get() == E::ZERO {
@@ -124,7 +135,6 @@ where
                 }
             }
         }
-        FactoredElem { factors }
     }
 }
 
