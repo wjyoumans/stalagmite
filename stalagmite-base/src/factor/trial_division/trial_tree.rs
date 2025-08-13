@@ -1,6 +1,6 @@
+use malachite::Natural;
 use malachite::base::num::arithmetic::traits::{DivisibleBy, FloorLogBase2, Gcd};
 use malachite::base::num::basic::traits::Zero;
-use malachite::Natural;
 
 use crate::LIMB_BITS;
 use crate::factor::prime_cache::{ensure_primes_computed, get_prime_cache};
@@ -115,9 +115,9 @@ pub fn get_trial_tree() -> &'static RwLock<FactorTrialTree> {
     })
 }
 
-pub fn factor_trial_tree(x: Natural, num_primes: usize) -> Option<Vec<usize>> {
-    if x <= 1 {
-        return if x == 1 { Some(vec![]) } else { None };
+pub fn factor_trial_tree(x: &Natural, num_primes: usize) -> Option<Vec<usize>> {
+    if x <= &1 {
+        return if x == &1 { Some(vec![]) } else { None };
     }
 
     let tree = get_trial_tree().read().unwrap();
@@ -135,7 +135,7 @@ pub fn factor_trial_tree(x: Natural, num_primes: usize) -> Option<Vec<usize>> {
                 let prime_idx = (LIMB_BITS / 16) * i + j;
 
                 if prime_idx < cache.len() && prime_idx < num_primes {
-                    if (&x).divisible_by(Natural::from(cache[prime_idx])) {
+                    if x.divisible_by(Natural::from(cache[prime_idx])) {
                         factors.push(prime_idx);
                     }
                 }
@@ -179,5 +179,95 @@ fn bit_count(n: usize) -> usize {
         0
     } else {
         (n.floor_log_base_2() + 1) as usize
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use malachite::base::num::basic::traits::{One, Zero};
+
+    #[test]
+    fn test_factor_trial_tree_creation() {
+        let tree = FactorTrialTree::new();
+        assert!(!tree.initialized);
+        assert_eq!(tree.tree.len(), FactorTrialTree::LEVELS);
+    }
+
+    #[test]
+    fn test_factor_trial_tree_initialization() {
+        let mut tree = FactorTrialTree::new();
+        tree.initialize();
+        assert!(tree.initialized);
+
+        // Check that first layer has been built with products
+        assert!(!tree.tree[0].is_empty());
+        for entry in &tree.tree[0] {
+            assert!(*entry > Natural::ZERO);
+        }
+    }
+
+    #[test]
+    fn test_get_trial_tree() {
+        let tree = get_trial_tree();
+        let tree_guard = tree.read().unwrap();
+        assert!(tree_guard.initialized);
+    }
+
+    #[test]
+    fn test_factor_trial_tree_small_numbers() {
+        // Test with small composite numbers
+        let factors = factor_trial_tree(Natural::from(6u32), 10).unwrap();
+        assert!(!factors.is_empty());
+
+        let factors = factor_trial_tree(Natural::from(12u32), 10).unwrap();
+        assert!(!factors.is_empty());
+    }
+
+    #[test]
+    fn test_factor_trial_tree_prime() {
+        // Test with a small prime
+        let factors = factor_trial_tree(Natural::from(7u32), 10).unwrap();
+        assert_eq!(factors.len(), 1);
+        assert_eq!(factors[0], 3); // 7 is the 4th prime (index 3)
+    }
+
+    #[test]
+    fn test_factor_trial_tree_special_cases() {
+        // Test edge cases
+        let factors = factor_trial_tree(Natural::ZERO, 10);
+        assert!(factors.is_none());
+
+        let factors = factor_trial_tree(Natural::ONE, 10).unwrap();
+        assert!(factors.is_empty());
+    }
+
+    #[test]
+    fn test_factor_trial_tree_power_of_two() {
+        // Test with power of 2
+        let factors = factor_trial_tree(Natural::from(8u32), 10).unwrap();
+        assert!(!factors.is_empty());
+        assert_eq!(factors[0], 0); // 2 is at index 0
+    }
+
+    #[test]
+    fn test_bit_count() {
+        assert_eq!(bit_count(0), 0);
+        assert_eq!(bit_count(1), 1);
+        assert_eq!(bit_count(2), 2);
+        assert_eq!(bit_count(3), 2);
+        assert_eq!(bit_count(4), 3);
+        assert_eq!(bit_count(7), 3);
+        assert_eq!(bit_count(8), 4);
+    }
+
+    #[test]
+    fn test_should_check_group() {
+        let tree = get_trial_tree().read().unwrap();
+
+        // Test with a number that should be checked
+        let result = should_check_group(&Natural::from(6u32), &tree, 0, 0);
+        // Just verify it doesn't panic and returns a boolean
+        assert!(result == true || result == false);
     }
 }

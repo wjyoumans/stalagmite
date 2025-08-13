@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Stalagmite. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::traits::{Element, Parent, Ring, RingElement};
+use crate::traits::{Element, Parent, Ring, RingElement, Valuation};
 pub use malachite::Integer;
 
 pub struct IntegerRing;

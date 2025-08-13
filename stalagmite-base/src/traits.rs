@@ -39,3 +39,14 @@ pub trait FieldElement: RingElement {
 
 pub trait PolynomialRing<R: Ring> {}
 pub trait Polynomial<R: Ring> {}
+
+pub trait Valuation {
+    type Exponent;
+    fn valuation(&self, p: &Self) -> Option<Self::Exponent>;
+}
+
+// like valuation, but
+pub trait RemovePower {
+    type Exponent;
+    fn remove_power(self, p: Self::Exponent) -> Option<Self::Exponent>;
+}

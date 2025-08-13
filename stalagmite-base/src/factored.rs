@@ -1,5 +1,6 @@
 use crate::integer::ZZElem;
 use crate::rational::QQElem;
+use malachite::Natural;
 use std::collections::{HashMap, hash_map::Entry};
 //use std::cmp::Eq;
 use malachite::base::num::arithmetic::traits::Pow;
@@ -127,12 +128,22 @@ where
     }
 }
 
-pub type FactoredZZElem = FactoredElem<ZZElem, u32>;
-pub type FactoredQQElem = FactoredElem<QQElem, i32>;
+pub type FactoredNatural = FactoredElem<Natural, u64>;
+pub type FactoredZZElem = FactoredElem<ZZElem, u64>;
+pub type FactoredQQElem = FactoredElem<QQElem, i64>;
 
 pub trait Eval {
     type Output;
     fn eval(self) -> Self::Output;
+}
+
+impl Eval for FactoredNatural {
+    type Output = Natural;
+    fn eval(self) -> Self::Output {
+        self.factors
+            .into_iter()
+            .fold(Natural::ONE, |acc, (fac, exp)| acc * fac.pow(exp))
+    }
 }
 
 impl Eval for FactoredZZElem {
@@ -140,7 +151,7 @@ impl Eval for FactoredZZElem {
     fn eval(self) -> Self::Output {
         self.factors
             .into_iter()
-            .fold(ZZElem::ONE, |acc, (fac, exp)| acc * fac.pow(exp as u64))
+            .fold(ZZElem::ONE, |acc, (fac, exp)| acc * fac.pow(exp))
     }
 }
 
@@ -149,6 +160,6 @@ impl Eval for FactoredQQElem {
     fn eval(self) -> Self::Output {
         self.factors
             .into_iter()
-            .fold(QQElem::ONE, |acc, (fac, exp)| acc * fac.pow(exp as i64))
+            .fold(QQElem::ONE, |acc, (fac, exp)| acc * fac.pow(exp))
     }
 }
