@@ -1,14 +1,13 @@
-use crate::factor::prime_cache::{ensure_primes_computed, get_prime_cache};
+use crate::factor::prime_cache::get_prime_cache;
 use crate::factor::trial_division::trial_range::remove_power_ascending;
 use crate::factor::trial_division::trial_tree::factor_trial_tree;
 use crate::factored::FactoredNatural;
 use malachite::Natural;
 use malachite::base::num::arithmetic::traits::{
-    DivAssignRem, DivExactAssign, DivRem, DivisibleBy, NegAssign, Square,
+    DivExactAssign, DivisibleBy,
 };
-use malachite::base::num::basic::traits::{Two, Zero};
+use malachite::base::num::basic::traits::Two;
 use malachite::base::num::factorization::traits::Factor;
-use malachite::natural::logic::trailing_zeros;
 
 pub fn factor_trial(n: &mut Natural, num_primes: usize) -> Option<FactoredNatural> {
     if *n == 0 {

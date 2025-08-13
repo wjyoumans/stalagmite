@@ -1,6 +1,7 @@
-use crate::factored::FactoredZZElem;
-use crate::integer::ZZElem;
+use crate::factor::trial_division::trial_range::factor_trial_range;
+use crate::factored::FactoredNatural;
 
+use malachite::Natural;
 pub mod prime_cache;
 pub mod trial_division;
 
@@ -8,14 +9,30 @@ pub mod trial_division;
 pub trait Factor {
     type FACTORS;
 
-    fn factor(&self) -> Self::FACTORS;
+    fn factor(&mut self) -> Self::FACTORS;
 }
 
-impl Factor for ZZElem {
-    type FACTORS = FactoredZZElem;
+impl Factor for Natural {
+    type FACTORS = FactoredNatural;
 
-    fn factor(&self) -> FactoredZZElem {
-        FactoredZZElem::new()
+    fn factor(&mut self) -> FactoredNatural {
+        // FLINT does this in batches of 1000. If trial division finds a factor
+        // it continues to the next 1000, otherwise switch to non-trial factoring.
+        let mut factors = factor_trial_range(self, 0, 3512);
+
+        // factor_no_trial:
+        // 1. check if prime
+        // 2. check if perfect power
+        //     - is_perfect_power modifies n in place
+        //     - call factor_no_trial on base (may not be prime)
+        // 3. factor smooth (ECM)
+        // 4. check if remaining cofactor is perfect power (FLINT qsieve cant factor perfect powers)
+        //     - if so, continue
+        //     - otherwise call qsieve
+        // 5. call factor_no_trial on each FACTOR, since they might not be prime
+
+        //factors *= factor_no_trial(n);
+        factors.unwrap()
     }
 }
 

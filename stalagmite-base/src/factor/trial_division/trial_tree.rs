@@ -43,18 +43,17 @@ impl FactorTrialTree {
     }
 
     fn build_first_layer(&mut self) {
-        let mut j = 0;
         let step = LIMB_BITS / 16;
         let cache = get_prime_cache().read().unwrap();
 
-        for i in (0..3512).step_by(step) {
+        for (j, i) in (0..3512).step_by(step).enumerate() {
+            //for i in (0..3512).step_by(step) {
             if LIMB_BITS == 64 {
                 self.tree[0][j] =
                     Natural::from(cache[i] * cache[i + 1] * cache[i + 2] * cache[i + 3]);
             } else {
                 self.tree[0][j] = Natural::from(cache[i] * cache[i + 1]);
             }
-            j += 1;
         }
     }
 

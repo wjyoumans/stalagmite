@@ -1,13 +1,11 @@
-use crate::LIMB_BITS;
-use crate::factor::prime_cache::{get_nth_prime_using_cache, get_prime_cache};
+use crate::factor::prime_cache::get_nth_prime_using_cache;
 use crate::factored::FactoredNatural;
 use malachite::Natural;
 use malachite::base::num::arithmetic::traits::{
-    DivAssignRem, DivExactAssign, DivRem, DivisibleBy, NegAssign, Square,
+    DivExactAssign, DivisibleBy, Square,
 };
-use malachite::base::num::basic::traits::{Two, Zero};
+use malachite::base::num::basic::traits::Two;
 use malachite::base::num::factorization::traits::Factor;
-use malachite::natural::logic::trailing_zeros;
 use std::cmp::{max, min};
 
 /// Factors a ZZElem using trial division within a specified prime range.
